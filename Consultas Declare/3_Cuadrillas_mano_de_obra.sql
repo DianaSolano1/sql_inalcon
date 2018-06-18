@@ -15,7 +15,7 @@
 				c.dias_labor AS 'dias_laborales',
 				c.horas_dia
 		FROM t_cuadrilla c
-				LEFT JOIN t_legal l ON c.id_salario_minimo = l.id
+				LEFT JOIN t_legal l ON c.id_salrio_minimo = l.id
 		GROUP BY
 			l.valor			,
 			c.dias_labor	,
@@ -35,20 +35,17 @@
 			salario_minimo			NUMERIC (18, 2)	NOT NULL,
 			dias_laborales			INT				NOT NULL,
 			valor_jornal			NUMERIC (18, 2)	NOT NULL,
-			cargo					BIT				NOT NULL,
-			id_jornal_empleado		INT				NOT NULL
+			cargo					BIT				NOT NULL
 		)
 
 		INSERT @T_JORNAL_EMPLEADO (
-				id_jornal_empleado,
 				descripcion,
 				porcentaje,
 				salario_minimo,
 				dias_laborales,
 				valor_jornal,
 				cargo)
-		SELECT	je.id,
-				je.descripcion,
+		SELECT	je.descripcion,
 				je.porcentaje,
 				cl.valor AS 'salario_minimo',
 				cd.dias_labor AS 'dias_laborales',
@@ -58,9 +55,8 @@
 				je.sn_ayudante AS 'cargo'
 		FROM t_jornal_empleado je
 				LEFT JOIN t_cuadrilla cd ON je.id_cuadrilla = cd.id
-				LEFT JOIN t_legal cl ON cd.id_salario_minimo = cl.id
+				LEFT JOIN t_legal cl ON cd.id_salrio_minimo = cl.id
 		GROUP BY
-			je.id,
 			je.descripcion	,
 			je.porcentaje	,
 			cl.valor		,
@@ -79,22 +75,18 @@
 			id_jornal_empleado		INT				NOT NULL,
 			descripcion_cuadrillas	VARCHAR (200)	NOT NULL,
 			cantidad_oficial		INT				NOT NULL,
-			cantidad_ayudante		INT				NOT NULL,
-			valor_jornal_cuadrilla	FLOAT			NOT NULL
+			cantidad_ayudante		INT				NOT NULL
 		)
 		
 		INSERT @T_CUADRILLAS (
 				id_jornal_empleado		,
 				descripcion_cuadrillas	,
 				cantidad_oficial		,
-				cantidad_ayudante,
-				valor_jornal_cuadrilla)
+				cantidad_ayudante)
 		SELECT	cdet.id_jornal_empleado,
 				cdet.descripcion AS 'descripcion_cuadrillas',
 				cdet.cantidad_oficial,
-				cdet.cantidad_ayudante,
-				1
-											
+				cdet.cantidad_ayudante
 		FROM t_cuadrilla_detalle cdet
 				LEFT JOIN t_jornal_empleado je ON cdet.id_jornal_empleado = je.id
 		GROUP BY
@@ -106,4 +98,3 @@
 		ORDER BY cdet.descripcion DESC
 
 		SELECT * FROM @T_CUADRILLAS
-
