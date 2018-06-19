@@ -1,13 +1,11 @@
-		DECLARE @T_CALCULO_FM TABLE 
+		DECLARE @T_REPORTE_INSUMOS TABLE 
 		(
-			item_capitulo VARCHAR (5) NOT NULL,
-			capitulo VARCHAR (200) NOT NULL,
-			porcentaje_capitulo INT NULL,
-			item_subcapitulo VARCHAR (5) NULL,
-			subcapitulo VARCHAR (200) NULL,
-			porcentaje_subcapitulo NUMERIC (5, 2) NULL,
-			item VARCHAR (200) NOT NULL,
-			porcentaje_item NUMERIC (5, 2) NULL
+			descripcion		VARCHAR (200)	NOT NULL	,
+			unidad			VARCHAR(30)		NOT NULL	,
+			antes_iva		NUMERIC (18, 2)	NOT NULL	,
+			aplica_iva		BIT				NOT NULL	,
+			valor_total		NUMERIC (18, 2)	NOT NULL	,
+			procedencia		VARCHAR (30)	NOT NULL	
 		)
 		----------------------------------------------------------------------------------------------------
 		-- GUARDA LOS DATOS PARA LA TABLA
@@ -37,20 +35,3 @@
 		ORDER BY p.nombre DESC
 
 		SELECT * FROM @T_REPORTE_INSUMOS
-
-		/*SELECT 
-			R.*, 
-			dbo.detectarIva(p.id)	as 'valor total' 
-		FROM @T_REPORTE_INSUMOS R 
-		LEFT JOIN t_productos p ON p.nombre = R.descripcion;*/
-
-		/*DECLARE @aplica_iva BIT = 1
-		IF @aplica_iva = 1							--> Verifica si tiene iva
-		BEGIN
-			DECLARE @valor_total NUMERIC (18, 2)
-			SET @valor_total	=	(@T_REPORTE_INSUMOS.antes_iva * (1 + (t_legal.valor / 100)))
-		END ELSE
-		IF @aplica_iva = 0							--> Verifica si no tiene iva
-		BEGIN
-			SET @valor_total	=	t_productos.valor
-		END ELSE*/
