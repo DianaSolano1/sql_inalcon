@@ -1,4 +1,4 @@
-﻿alter function calcularFactorMultiplicador(@item varchar(10))
+﻿create function calcularFactorMultiplicador(@item varchar(10))
 returns float
 as
 begin

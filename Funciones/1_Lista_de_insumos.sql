@@ -18,7 +18,7 @@ AS BEGIN
 					LEFT JOIN t_legal l ON p.id_iva = l.id
 					WHERE p.id = @id_producto)
 
-   IF @tieneIva = 1							--> Sí
+   IF @tieneIva = 1							--> Sï¿½
    BEGIN
        SET @precioARetornar =   @precioNormal * @valorIva
    END
@@ -29,6 +29,8 @@ AS BEGIN
 
    RETURN @precioARetornar
 END
+
+go
 
 
 SELECT nombre, sn_iva, valor, dbo.fc_detectarIva(id) AS precio FROM t_productos
