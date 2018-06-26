@@ -1,4 +1,4 @@
-﻿create function calcularFactorMultiplicadorTotal()
+﻿alter function calcularFactorMultiplicadorTotal()
 returns float 
 as
 begin

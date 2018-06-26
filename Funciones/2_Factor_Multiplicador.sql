@@ -29,3 +29,5 @@ begin
 end
 
 go
+
+select dbo.calcularFactorMultiplicador(1) as 'Total';
