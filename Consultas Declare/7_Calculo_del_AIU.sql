@@ -13,7 +13,7 @@
 		HAVING COUNT(*) >= 1
 		ORDER BY c.valor_contrato DESC
 
-		SELECT * FROM @T_VALOR_DIRECTO
+		--SELECT * FROM @T_VALOR_DIRECTO
 
 
 		----------------------------------------------------------------------------------------------------
@@ -22,7 +22,7 @@
 			id						INT				NOT NULL,
 			gastos_campo_oficinas	VARCHAR (200)	NOT NULL,
 			valor					NUMERIC (19, 3)	NOT NULL,
-			dedicacion				NUMERIC (6, 3)	NOT NULL,
+			dedicacion				NUMERIC (5, 2)	NOT NULL,
 			tiempo_obra				NUMERIC (5, 2)	NOT NULL,
 			total					NUMERIC (20, 1)	NOT NULL,
 			porcentaje				NUMERIC (6, 3)	NOT NULL
@@ -90,7 +90,7 @@
 		HAVING COUNT(*) >= 1
 		ORDER BY gl.id DESC
 
-		SELECT * FROM @T_GASTOS_LEGALES
+		--SELECT * FROM @T_GASTOS_LEGALES
 
 
 		----------------------------------------------------------------------------------------------------
@@ -143,7 +143,7 @@
 		HAVING COUNT(*) >= 1
 		ORDER BY gp.id DESC
 
-		SELECT * FROM @T_GASTOS_PERSONAL
+		--SELECT * FROM @T_GASTOS_PERSONAL
 
 
 		----------------------------------------------------------------------------------------------------
@@ -176,7 +176,7 @@
 		HAVING COUNT(*) >= 1
 		ORDER BY i.id DESC
 
-		SELECT * FROM @T_IMPUESTOS
+		--SELECT * FROM @T_IMPUESTOS
 
 		----------------------------------------------------------------------------------------------------
 		DECLARE @T_ADMIN_IMPREVISTOS_UTIL TABLE 
@@ -208,4 +208,4 @@
 		HAVING COUNT(*) >= 1
 		ORDER BY ai.id DESC
 
-		SELECT * FROM @T_ADMIN_IMPREVISTOS_UTIL
+		--SELECT * FROM @T_ADMIN_IMPREVISTOS_UTIL

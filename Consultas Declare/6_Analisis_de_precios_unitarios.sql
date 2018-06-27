@@ -30,8 +30,7 @@
 		HAVING COUNT(*) >= 1
 		ORDER BY a.codigo DESC
 
-		SELECT * FROM @T_INICIAL_APU
-
+		--SELECT * FROM @T_INICIAL_APU
 
 		----------------------------------------------------------------------------------------------------
 		DECLARE @T_REPORTE_EQUIPO TABLE 
@@ -42,7 +41,8 @@
 			cantidad	NUMERIC (5, 2)	NOT NULL,
 			tarifa_dia	NUMERIC (18, 2)	NULL,
 			rendimiento	NUMERIC (5, 2)	NOT NULL,
-			valor		NUMERIC (18, 2)	NOT NULL
+			valor		NUMERIC (18, 2)	NOT NULL,
+			total		NUMERIC (18, 2)	NULL
 		)
 
 		INSERT @T_REPORTE_EQUIPO (
@@ -75,8 +75,17 @@
 		HAVING COUNT(*) >= 1
 		ORDER BY a.codigo DESC
 
-		SELECT * FROM @T_REPORTE_EQUIPO
+		--SELECT * FROM @T_REPORTE_EQUIPO
 
+		UPDATE @T_REPORTE_EQUIPO
+		SET
+			total	=	dbo.TotalEquipo(apu)
+		FROM
+			@T_REPORTE_EQUIPO RE
+		WHERE
+			total	IS NULL
+
+		SELECT * FROM @T_REPORTE_EQUIPO
 
 		----------------------------------------------------------------------------------------------------
 		DECLARE @T_REPORTE_MATERIALES TABLE 
@@ -86,9 +95,9 @@
 			unidad				VARCHAR (30)	NOT NULL,
 			cantidad			NUMERIC (5, 2)	NOT NULL,
 			valor_unitario		NUMERIC (18, 2)	NULL,
-			factor_desperdicio	NUMERIC (6, 3)	NOT NULL,
-			valor				NUMERIC (18, 2)	NOT NULL,
-			porcentaje			NUMERIC (6, 3)	NOT NULL
+			factor_desperdicio	NUMERIC (5, 2)	NOT NULL,
+			valor				NUMERIC (18, 2)	NULL,
+			total				NUMERIC (18, 2)	NULL
 		)
 		
 		INSERT @T_REPORTE_MATERIALES (
@@ -97,17 +106,14 @@
 				unidad,
 				cantidad,
 				valor_unitario,
-				factor_desperdicio,
-				valor,
-				porcentaje)
+				factor_desperdicio)
 		SELECT	a.codigo AS 'apu',
 				p.nombre AS 'materiales',
 				u.nombre AS 'unidad',
 				am.cantidad AS 'cantidad',
 				p.valor AS 'valor_unitario',
-				a.factor_desperdicio,
-				(am.cantidad * p.valor * (1 + (a.factor_desperdicio / 100))) AS 'valor',
-				(1 + (a.factor_desperdicio / 100)) AS 'porcentaje'
+				a.factor_desperdicio
+				--(am.cantidad * p.valor * (1 + (a.factor_desperdicio / 100))) AS 'valor'
 		FROM t_apu_materiales am
 				LEFT JOIN t_productos p ON am.id_productos = p.id
 				LEFT JOIN t_unidades u ON p.id_unidad = u.id
@@ -122,8 +128,29 @@
 		HAVING COUNT(*) >= 1
 		ORDER BY a.codigo DESC
 
-		SELECT * FROM @T_REPORTE_MATERIALES
+		--SELECT * FROM @T_REPORTE_MATERIALES
 
+		UPDATE @T_REPORTE_MATERIALES
+		SET
+			valor	=	dbo.calcularValorMaterial(apu,p.id)
+		FROM
+			@T_REPORTE_MATERIALES RM
+			LEFT JOIN t_productos p ON RM.materiales = p.nombre
+		--WHERE
+			--valor	IS NULL
+
+		--SELECT * FROM @T_REPORTE_MATERIALES
+
+		UPDATE @T_REPORTE_MATERIALES
+		SET
+			total	=	dbo.TotalMaterial(apu,p.id)
+		FROM
+			@T_REPORTE_MATERIALES RM
+			LEFT JOIN t_productos p ON RM.materiales = p.nombre
+		WHERE
+			total	IS NULL
+
+		SELECT * FROM @T_REPORTE_MATERIALES
 
 		----------------------------------------------------------------------------------------------------
 		DECLARE @T_REPORTE_TRANSPORTE_MATERIALES TABLE 
@@ -134,7 +161,8 @@
 			distancia				NUMERIC (10, 2)	NOT NULL,
 			m3_km					NUMERIC (18, 2)	NOT NULL,
 			tarifa					NUMERIC (10, 2)	NOT NULL,
-			valor_unitario			NUMERIC (20, 2)	NOT NULL
+			valor_unitario			NUMERIC (20, 2)	NOT NULL,
+			total					NUMERIC (18, 2)	NULL
 		)
 		
 		INSERT @T_REPORTE_TRANSPORTE_MATERIALES (
@@ -166,15 +194,30 @@
 		HAVING COUNT(*) >= 1
 		ORDER BY a.codigo DESC
 
-		SELECT * FROM @T_REPORTE_TRANSPORTE_MATERIALES
+		--SELECT * FROM @T_REPORTE_TRANSPORTE_MATERIALES
 
+		UPDATE @T_REPORTE_TRANSPORTE_MATERIALES
+		SET
+			total	=	dbo.TotalTransporteMaterial(apu)
+		FROM
+			@T_REPORTE_TRANSPORTE_MATERIALES RTM
+			--LEFT JOIN t_productos p ON RTM.transporte_materiales = p.nombre
+		WHERE
+			total	IS NULL
+
+		SELECT * FROM @T_REPORTE_TRANSPORTE_MATERIALES
 
 		----------------------------------------------------------------------------------------------------
 		DECLARE @T_REPORTE_MANO_OBRA TABLE 
 		(
-			apu			VARCHAR(5)		NOT NULL,
-			mano_obra	VARCHAR (200)	NULL,
-			redimiento	NUMERIC (5, 2)	NOT NULL
+			apu					VARCHAR(5)		NOT NULL,
+			mano_obra			VARCHAR (200)	NULL,
+			jornal				NUMERIC (18, 2)	NULL,
+			factor_prestacional	NUMERIC (5, 2)	NULL,
+			jornal_total		NUMERIC (18, 2)	NULL,
+			redimiento			NUMERIC (5, 2)	NOT NULL,
+			valor				NUMERIC (18, 2) NULL,
+			total				NUMERIC (18, 2)	NULL
 		)
 		
 		INSERT @T_REPORTE_MANO_OBRA (
@@ -194,5 +237,58 @@
 			amo.rendimiento	
 		HAVING COUNT(*) >= 1
 		ORDER BY a.codigo DESC
+
+		--SELECT * FROM @T_REPORTE_MANO_OBRA
+
+		UPDATE @T_REPORTE_MANO_OBRA
+		SET
+			jornal	=	
+			(
+				-- para el de oficial
+				(cdet.cantidad_oficial * dbo.ObtenerValorJornal(cdet.id_jornal_empleado,  1))
+				+
+				-- para el de ayudante
+				(cdet.cantidad_ayudante * dbo.ObtenerValorJornal(cdet.id_jornal_empleado, 0))
+				
+				--dbo.ManoObraJornal()
+			)
+		FROM
+			@T_REPORTE_MANO_OBRA RMO
+			LEFT JOIN t_cuadrilla_detalle cdet ON RMO.mano_obra = cdet.descripcion
+		WHERE
+			jornal	IS NULL
+
+		--SELECT * FROM @T_REPORTE_MANO_OBRA
+
+		UPDATE @T_REPORTE_MANO_OBRA
+		SET
+			factor_prestacional	=	(dbo.calcularFactorMultiplicadorTotal() / 100)
+		FROM
+			@T_REPORTE_MANO_OBRA RMO
+			--LEFT JOIN t_productos p ON RTM.transporte_materiales = p.nombre
+		WHERE
+			factor_prestacional	IS NULL
+
+		--SELECT * FROM @T_REPORTE_MANO_OBRA
+
+		UPDATE @T_REPORTE_MANO_OBRA
+		SET
+			jornal_total	=	(jornal * factor_prestacional)
+		FROM
+			@T_REPORTE_MANO_OBRA RMO
+			--LEFT JOIN t_productos p ON RTM.transporte_materiales = p.nombre
+		WHERE
+			jornal_total	IS NULL
+
+		--SELECT * FROM @T_REPORTE_MANO_OBRA
+
+		UPDATE @T_REPORTE_MANO_OBRA
+		SET
+			valor	=	(jornal_total / redimiento)
+		FROM
+			@T_REPORTE_MANO_OBRA RMO
+			--LEFT JOIN t_productos p ON RTM.transporte_materiales = p.nombre
+		WHERE
+			valor	IS NULL
 
 		SELECT * FROM @T_REPORTE_MANO_OBRA

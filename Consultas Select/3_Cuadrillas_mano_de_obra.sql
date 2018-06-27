@@ -10,7 +10,7 @@ SELECT	l.valor AS 'salario_minimo',
 		c.dias_labor AS 'dias_laborales',
 		c.horas_dia
 FROM t_cuadrilla c
-LEFT JOIN t_legal l ON c.id_salario_minimo = l.id;
+LEFT JOIN t_legal l ON c.id_salrio_minimo = l.id;
 
 -- Reporte primera tabla cuadrilla
 SELECT	je.descripcion,
@@ -23,7 +23,7 @@ SELECT	je.descripcion,
 		je.sn_ayudante AS 'cargo'
 FROM t_jornal_empleado je
 LEFT JOIN t_cuadrilla cd ON je.id_cuadrilla = cd.id
-LEFT JOIN t_legal cl ON cd.id_salario_minimo = cl.id;
+LEFT JOIN t_legal cl ON cd.id_salrio_minimo = cl.id;
 
 -- Reporte segunda tabla cuadrilla
 SELECT	cdet.id_jornal_empleado,

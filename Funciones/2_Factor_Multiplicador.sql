@@ -30,4 +30,4 @@ end
 
 go
 
-select dbo.calcularFactorMultiplicador(1) as 'Total';
+select dbo.calcularFactorMultiplicador('C') as 'Total';
