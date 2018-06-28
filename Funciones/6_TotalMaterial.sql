@@ -1,4 +1,4 @@
-alter function TotalMaterial(@id_apu VARCHAR(5),@id_producto INT)
+alter function TotalMaterial(@id_apu VARCHAR(5))
 returns float 
 as
 begin
@@ -13,7 +13,13 @@ begin
 				LEFT JOIN t_apu a ON am.id_apu = a.ID
 			where
 				am.id_apu = @id_apu*/
-			sum(dbo.calcularValorMaterial(@id_apu,@id_producto))
+			select
+				sum(dbo.calcularValorMaterial(@id_apu,p.id))
+			from t_apu_equipo ae
+				LEFT JOIN t_productos p ON ae.id_productos = p.id
+				LEFT JOIN t_apu a ON ae.id_apu = a.ID
+			where 
+				a.codigo = @id_apu
 		);
 	return @valor;
 end
@@ -22,4 +28,4 @@ go
 
 --select * from t_factor_base;
 
-select dbo.TotalMaterial('001',1) as 'total_materiales';
+select dbo.TotalMaterial('0001') as 'total_materiales';

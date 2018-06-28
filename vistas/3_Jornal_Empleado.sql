@@ -11,7 +11,7 @@ as
 				je.sn_ayudante AS 'cargo'
 		FROM t_jornal_empleado je
 				LEFT JOIN t_cuadrilla cd ON je.id_cuadrilla = cd.id
-				LEFT JOIN t_legal cl ON cd.id_salario_minimo = cl.id
+				LEFT JOIN t_legal cl ON cd.id_salrio_minimo = cl.id
 		GROUP BY
 			je.id,
 			je.descripcion	,

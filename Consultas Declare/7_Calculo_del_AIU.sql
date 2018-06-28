@@ -24,8 +24,10 @@
 			valor					NUMERIC (19, 3)	NOT NULL,
 			dedicacion				NUMERIC (5, 2)	NOT NULL,
 			tiempo_obra				NUMERIC (5, 2)	NOT NULL,
-			total					NUMERIC (20, 1)	NOT NULL,
-			porcentaje				NUMERIC (6, 3)	NOT NULL
+			total					NUMERIC (18, 2)	NOT NULL,
+			porcentaje				NUMERIC (6, 3)	NOT NULL,
+			subtotal_valor			NUMERIC (18, 2)	NOT NULL,
+			subtotal_porcentaje		NUMERIC (6, 3)	NOT NULL
 		)
 
 		INSERT @T_GASTOS_CAMPO_OFICINA (
@@ -35,15 +37,19 @@
 				dedicacion,
 				tiempo_obra,
 				total,
-				porcentaje
+				porcentaje,
+				subtotal_valor,
+				subtotal_porcentaje
 			)
 		SELECT	co.id,
 				co.descripcion AS 'gastos_campo_oficinas',
 				co.valor,
 				co.dedicacion,
 				co.tiempo_obra,
-				(co.valor * (co.dedicacion / 100) * co.tiempo_obra) AS 'total',
-				(((co.valor * (co.dedicacion / 100) * co.tiempo_obra) / c.valor_contrato) * 100) AS 'porcentaje'
+				dbo.TotalGastosCO(co.id) AS 'total',
+				dbo.PorcentajeGastosCO(co.id) AS 'porcentaje',
+				dbo.GastosCOSTIValor() AS 'subtotal_valor',
+				dbo.GastosCOSTIPorcentaje() AS 'subtotal_porcentaje'
 		FROM t_gastos_campos_oficinas co
 				LEFT JOIN t_AIU aiu ON co.id_AIU = aiu.id
 				LEFT JOIN t_cliente c ON aiu.id_cliente = c.ID
@@ -57,7 +63,7 @@
 		HAVING COUNT(*) >= 1
 		ORDER BY co.id DESC
 
-		SELECT * FROM @T_GASTOS_CAMPO_OFICINA
+		--SELECT * FROM @T_GASTOS_CAMPO_OFICINA
 
 
 		----------------------------------------------------------------------------------------------------
@@ -78,7 +84,7 @@
 		SELECT	gl.id,
 				gl.descripcion AS 'gastos_legales',
 				gl.valores,
-				((gl.valores / cl.valor_contrato) * 100) AS 'porcentaje'
+				dbo.GastosLPorcentaje(gl.id) AS 'porcentaje'
 		FROM t_gastos_legales gl
 				LEFT JOIN t_AIU a ON gl.id_AIU = a.id
 				LEFT JOIN t_cliente cl ON a.id_cliente = cl.ID
@@ -90,7 +96,7 @@
 		HAVING COUNT(*) >= 1
 		ORDER BY gl.id DESC
 
-		--SELECT * FROM @T_GASTOS_LEGALES
+		SELECT * FROM @T_GASTOS_LEGALES
 
 
 		----------------------------------------------------------------------------------------------------

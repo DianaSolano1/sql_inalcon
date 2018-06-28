@@ -5,7 +5,8 @@
 			descripcion			VARCHAR(50)		NOT NULL,
 			unidad				VARCHAR (30)	NOT NULL,
 			factor_hm			NUMERIC (6, 3)	NOT NULL,
-			factor_desperdicio	NUMERIC (6, 3)	NOT NULL
+			factor_desperdicio	NUMERIC (6, 3)	NOT NULL,
+			costos_directos		NUMERIC (18, 2)	NULL	
 		)
 
 		INSERT @T_INICIAL_APU (
@@ -31,6 +32,24 @@
 		ORDER BY a.codigo DESC
 
 		--SELECT * FROM @T_INICIAL_APU
+
+		UPDATE @T_INICIAL_APU
+		SET
+			costos_directos	=	(
+				dbo.TotalEquipo(a.codigo)				+
+				dbo.TotalMaterial(a.codigo)				+
+				dbo.TotalTransporteMaterial(a.codigo)	+
+				dbo.TotalManoObra(a.codigo)
+			)
+		FROM
+			@T_INICIAL_APU APU
+			LEFT JOIN t_apu a ON a.codigo = apu.apu
+			LEFT JOIN t_apu_equipo ae ON ae.id_apu = a.ID
+			LEFT JOIN t_productos p ON ae.id_productos = p.id
+		WHERE
+			costos_directos	IS NULL
+
+		SELECT * FROM @T_INICIAL_APU
 
 		----------------------------------------------------------------------------------------------------
 		DECLARE @T_REPORTE_EQUIPO TABLE 
@@ -143,7 +162,7 @@
 
 		UPDATE @T_REPORTE_MATERIALES
 		SET
-			total	=	dbo.TotalMaterial(apu,p.id)
+			total	=	dbo.TotalMaterial(apu)
 		FROM
 			@T_REPORTE_MATERIALES RM
 			LEFT JOIN t_productos p ON RM.materiales = p.nombre
@@ -242,19 +261,13 @@
 
 		UPDATE @T_REPORTE_MANO_OBRA
 		SET
-			jornal	=	
-			(
-				-- para el de oficial
-				(cdet.cantidad_oficial * dbo.ObtenerValorJornal(cdet.id_jornal_empleado,  1))
-				+
-				-- para el de ayudante
-				(cdet.cantidad_ayudante * dbo.ObtenerValorJornal(cdet.id_jornal_empleado, 0))
-				
-				--dbo.ManoObraJornal()
-			)
+			jornal	=	dbo.ManoObraJornal(a.codigo,cdet.id)
 		FROM
 			@T_REPORTE_MANO_OBRA RMO
 			LEFT JOIN t_cuadrilla_detalle cdet ON RMO.mano_obra = cdet.descripcion
+			left join t_cuadrilla c ON c.id = cdet.id_cuadrilla
+			left join t_apu_mano_obra amo ON amo.id_cuadrilla = c.id
+			left join t_apu a ON a.ID = amo.id_apu
 		WHERE
 			jornal	IS NULL
 
@@ -273,10 +286,13 @@
 
 		UPDATE @T_REPORTE_MANO_OBRA
 		SET
-			jornal_total	=	(jornal * factor_prestacional)
+			jornal_total	=	dbo.ManoObraJornalTotal(a.codigo,cdet.id)
 		FROM
 			@T_REPORTE_MANO_OBRA RMO
-			--LEFT JOIN t_productos p ON RTM.transporte_materiales = p.nombre
+			LEFT JOIN t_cuadrilla_detalle cdet ON RMO.mano_obra = cdet.descripcion
+			left join t_cuadrilla c ON c.id = cdet.id_cuadrilla
+			left join t_apu_mano_obra amo ON amo.id_cuadrilla = c.id
+			left join t_apu a ON a.ID = amo.id_apu
 		WHERE
 			jornal_total	IS NULL
 
@@ -284,11 +300,25 @@
 
 		UPDATE @T_REPORTE_MANO_OBRA
 		SET
-			valor	=	(jornal_total / redimiento)
+			valor	=	dbo.ManoObraValor(a.codigo,cdet.id)
 		FROM
 			@T_REPORTE_MANO_OBRA RMO
 			--LEFT JOIN t_productos p ON RTM.transporte_materiales = p.nombre
+			LEFT JOIN t_cuadrilla_detalle cdet ON RMO.mano_obra = cdet.descripcion
+			left join t_cuadrilla c ON c.id = cdet.id_cuadrilla
+			left join t_apu_mano_obra amo ON amo.id_cuadrilla = c.id
+			left join t_apu a ON a.ID = amo.id_apu
 		WHERE
 			valor	IS NULL
+
+		--SELECT * FROM @T_REPORTE_MANO_OBRA
+
+		UPDATE @T_REPORTE_MANO_OBRA
+		SET
+			total	=	dbo.TotalManoObra(apu)
+		FROM
+			@T_REPORTE_MANO_OBRA RMO
+		WHERE
+			total	IS NULL
 
 		SELECT * FROM @T_REPORTE_MANO_OBRA
