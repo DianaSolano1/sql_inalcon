@@ -69,22 +69,28 @@
 		----------------------------------------------------------------------------------------------------
 		DECLARE @T_GASTOS_LEGALES TABLE 
 		(
-			id				INT				NOT NULL,
-			gastos_legales	VARCHAR (200)	NOT NULL,
-			valores			NUMERIC (19, 3)	NOT NULL,
-			porcentaje		NUMERIC (6, 3)	NOT NULL
+			id					INT				NOT NULL,
+			gastos_legales		VARCHAR (200)	NOT NULL,
+			valores				NUMERIC (18, 2)	NOT NULL,
+			porcentaje			NUMERIC (6, 3)	NOT NULL,
+			subtotal_valor		NUMERIC (18, 2)	NOT NULL,
+			subtotal_porcentaje	NUMERIC (6, 3)	NOT NULL
 		)
 
 		INSERT @T_GASTOS_LEGALES (
 				id,
 				gastos_legales,
 				valores,
-				porcentaje
+				porcentaje,
+				subtotal_valor,
+				subtotal_porcentaje
 			)
 		SELECT	gl.id,
 				gl.descripcion AS 'gastos_legales',
 				gl.valores,
-				dbo.GastosLPorcentaje(gl.id) AS 'porcentaje'
+				dbo.GastosLPorcentaje(gl.id) AS 'porcentaje',
+				dbo.GastosLSTIValores() as 'subtotal_valores',
+				dbo.GastosLSTIPorcentajes() as 'subtotal_porcentajes'
 		FROM t_gastos_legales gl
 				LEFT JOIN t_AIU a ON gl.id_AIU = a.id
 				LEFT JOIN t_cliente cl ON a.id_cliente = cl.ID
@@ -96,7 +102,7 @@
 		HAVING COUNT(*) >= 1
 		ORDER BY gl.id DESC
 
-		SELECT * FROM @T_GASTOS_LEGALES
+		--SELECT * FROM @T_GASTOS_LEGALES
 
 
 		----------------------------------------------------------------------------------------------------
@@ -131,8 +137,8 @@
 				gp.valor,
 				gp.dedicacion,
 				gp.tiempo_obra,
-				(gp.cantidad_empleado * gp.factor_prestacional * gp.valor * (gp.dedicacion / 100) * gp.tiempo_obra) AS 'total',
-				(((gp.cantidad_empleado * gp.factor_prestacional * gp.valor * (gp.dedicacion / 100) * gp.tiempo_obra) / c.valor_contrato) * 100 ) AS 'porcentaje'
+				dbo.GastosPTotal(gp.id) AS 'total',
+				dbo.GastosPPorcentaje(gp.id) AS 'porcentaje'
 		FROM t_gastos_personal gp
 				LEFT JOIN t_cargo_sueldo cs ON gp.id_empleado = cs.id
 				LEFT JOIN t_AIU aiu ON gp.id_AIU = aiu.id
@@ -149,7 +155,7 @@
 		HAVING COUNT(*) >= 1
 		ORDER BY gp.id DESC
 
-		--SELECT * FROM @T_GASTOS_PERSONAL
+		SELECT * FROM @T_GASTOS_PERSONAL
 
 
 		----------------------------------------------------------------------------------------------------
