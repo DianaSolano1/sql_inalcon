@@ -28,7 +28,7 @@
 				cp.dedicacion,
 				cp.tiempo_ejecucion,
 				cs.sueldo_basico,
-				(cp.cantidad * (cp.dedicacion / 100) * cp.tiempo_ejecucion * cs.sueldo_basico) AS 'costo_parcial'
+				dbo.CostoPersonalParcial(cs.ID) AS 'costo_parcial'
 		FROM t_costos_personal cp
 				LEFT JOIN t_experiencia ex ON cp.id_experiencia = ex.ID
 				LEFT JOIN t_cargo_sueldo cs ON cp.id_experiencia = cs.ID
@@ -40,12 +40,41 @@
 			ex.nombre			,
 			cp.dedicacion		,
 			cp.tiempo_ejecucion	,
-			cs.sueldo_basico	
+			cs.sueldo_basico	,
+			cs.ID
 		HAVING COUNT(*) >= 1
 		ORDER BY rc.nombre DESC
 
 		SELECT * FROM @T_COSTOS_PERSONAL
 
+
+		----------------------------------------------------------------------------------------------------
+
+		DECLARE @T_TOTAL_COSTOS_PERSONAL TABLE 
+		(
+			sub_total		NUMERIC (18, 2)	NOT NULL,
+			FM				NUMERIC (5, 2)	NOT NULL,
+			total_personal	NUMERIC (18, 2)	NULL
+		)
+
+		INSERT @T_TOTAL_COSTOS_PERSONAL (
+				sub_total,
+				FM
+			)
+		SELECT	(dbo.CostoPersonalSubTotal()),
+				2
+
+		--SELECT * FROM @T_TOTAL_COSTOS_PERSONAL
+
+		UPDATE @T_TOTAL_COSTOS_PERSONAL
+		SET
+			total_personal			= (dbo.TotalPersonal())
+		FROM
+			@T_TOTAL_COSTOS_PERSONAL ADM
+		WHERE
+			total_personal	IS NULL
+
+		SELECT * FROM @T_TOTAL_COSTOS_PERSONAL
 
 		----------------------------------------------------------------------------------------------------
 		DECLARE @T_OTROS_COSTOS_DIRECTOS TABLE 
@@ -56,7 +85,8 @@
 			dedicacion			NUMERIC (6, 3)	NOT NULL,
 			tiempo_ejecucion	INT				NOT NULL,
 			tarifa				NUMERIC (18, 2)	NOT NULL,
-			costo_parcial		NUMERIC (18, 2)	NOT NULL
+			costo_parcial		NUMERIC (18, 2)	NOT NULL,
+			total_costo_parcial	NUMERIC (18, 2)	NOT NULL
 		)
 
 		INSERT @T_OTROS_COSTOS_DIRECTOS (
@@ -66,7 +96,8 @@
 				dedicacion,
 				tiempo_ejecucion,
 				tarifa,
-				costo_parcial
+				costo_parcial,
+				total_costo_parcial
 			)
 		SELECT	cd.nombre AS 'descripcion',
 				cd.cantidad,
@@ -74,7 +105,8 @@
 				cd.dedicacion,
 				cd.tiempo_ejecucion,
 				cd.tarifa,
-				(cd.tarifa * (cd.dedicacion / 100) * cd.tiempo_ejecucion * cd.cantidad) AS 'costo_parcial'
+				dbo.CostoDirectoParcial(cd.id) AS 'costo_parcial',
+				dbo.CostoDirectoParcialTotal()
 		FROM t_costos_directos cd
 				LEFT JOIN t_unidades u ON cd.id_unidad = u.id
 		GROUP BY
@@ -83,8 +115,27 @@
 			u.nombre			,
 			cd.dedicacion		,
 			cd.tiempo_ejecucion	,
-			cd.tarifa			
+			cd.tarifa			,
+			cd.id
 		HAVING COUNT(*) >= 1
 		ORDER BY cd.nombre DESC
 
 		SELECT * FROM @T_OTROS_COSTOS_DIRECTOS
+
+		----------------------------------------------------------------------------------------------------
+		DECLARE @T_SUPERVISION_INTERVENTORIA TABLE 
+		(
+			total_costos_interventoria	NUMERIC (18, 2)	NOT NULL,
+			con_iva						NUMERIC (18, 2)	NOT NULL,
+			costo_total					NUMERIC (18, 2)	NOT NULL
+		)
+
+		INSERT @T_SUPERVISION_INTERVENTORIA (
+				total_costos_interventoria,
+				con_iva,
+				costo_total
+			)
+		SELECT	dbo.TotalCostosInterventoria(),
+				
+
+		SELECT * FROM @T_SUPERVISION_INTERVENTORIA

@@ -1,4 +1,4 @@
-create function GastosCOSTIPorcentaje()
+alter function GastosPSTI()
 returns float 
 as
 begin
@@ -6,8 +6,8 @@ begin
 
 	--set @valor = (select sum(tfd.porcentaje) from t_factor_base tfd );
 	set @valor = (
-			select SUM(dbo.PorcentajeGastosCO(co.id))
-			from t_gastos_campos_oficinas co
+			select SUM(dbo.GastosPTotal(gp.id))
+			from t_gastos_personal gp
 		);
 
 	return @valor;
@@ -17,4 +17,4 @@ go
 
 --select * from t_factor_base;
 
-select dbo.GastosCOSTIPorcentaje() as 'subtotal_porcentaje';
+select dbo.GastosPSTI() as 'subtotal_porcentajes';

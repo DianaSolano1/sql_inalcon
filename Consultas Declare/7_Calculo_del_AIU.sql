@@ -27,7 +27,7 @@
 			total					NUMERIC (18, 2)	NOT NULL,
 			porcentaje				NUMERIC (6, 3)	NOT NULL,
 			subtotal_valor			NUMERIC (18, 2)	NOT NULL,
-			subtotal_porcentaje		NUMERIC (6, 3)	NOT NULL
+			GastosCOSTIPorcentaje	NUMERIC (6, 3)	NOT NULL
 		)
 
 		INSERT @T_GASTOS_CAMPO_OFICINA (
@@ -39,7 +39,7 @@
 				total,
 				porcentaje,
 				subtotal_valor,
-				subtotal_porcentaje
+				GastosCOSTIPorcentaje
 			)
 		SELECT	co.id,
 				co.descripcion AS 'gastos_campo_oficinas',
@@ -48,8 +48,8 @@
 				co.tiempo_obra,
 				dbo.TotalGastosCO(co.id) AS 'total',
 				dbo.PorcentajeGastosCO(co.id) AS 'porcentaje',
-				dbo.GastosCOSTIValor() AS 'subtotal_valor',
-				dbo.GastosCOSTIPorcentaje() AS 'subtotal_porcentaje'
+				dbo.GastosCOSTIValor() AS 'GastosCOSTIValor',
+				dbo.GastosCOSTIPorcentaje() AS 'GastosCOSTIPorcentaje'
 		FROM t_gastos_campos_oficinas co
 				LEFT JOIN t_AIU aiu ON co.id_AIU = aiu.id
 				LEFT JOIN t_cliente c ON aiu.id_cliente = c.ID
@@ -63,7 +63,7 @@
 		HAVING COUNT(*) >= 1
 		ORDER BY co.id DESC
 
-		--SELECT * FROM @T_GASTOS_CAMPO_OFICINA
+		SELECT * FROM @T_GASTOS_CAMPO_OFICINA
 
 
 		----------------------------------------------------------------------------------------------------
@@ -74,7 +74,7 @@
 			valores				NUMERIC (18, 2)	NOT NULL,
 			porcentaje			NUMERIC (6, 3)	NOT NULL,
 			subtotal_valor		NUMERIC (18, 2)	NOT NULL,
-			subtotal_porcentaje	NUMERIC (6, 3)	NOT NULL
+			GastosLSTIPorcentajes	NUMERIC (6, 3)	NOT NULL
 		)
 
 		INSERT @T_GASTOS_LEGALES (
@@ -83,14 +83,14 @@
 				valores,
 				porcentaje,
 				subtotal_valor,
-				subtotal_porcentaje
+				GastosLSTIPorcentajes
 			)
 		SELECT	gl.id,
 				gl.descripcion AS 'gastos_legales',
 				gl.valores,
 				dbo.GastosLPorcentaje(gl.id) AS 'porcentaje',
-				dbo.GastosLSTIValores() as 'subtotal_valores',
-				dbo.GastosLSTIPorcentajes() as 'subtotal_porcentajes'
+				dbo.GastosLSTIValores() as 'GastosLSTIValores',
+				dbo.GastosLSTIPorcentajes() as 'GastosLSTIPorcentajes'
 		FROM t_gastos_legales gl
 				LEFT JOIN t_AIU a ON gl.id_AIU = a.id
 				LEFT JOIN t_cliente cl ON a.id_cliente = cl.ID
@@ -102,7 +102,7 @@
 		HAVING COUNT(*) >= 1
 		ORDER BY gl.id DESC
 
-		--SELECT * FROM @T_GASTOS_LEGALES
+		SELECT * FROM @T_GASTOS_LEGALES
 
 
 		----------------------------------------------------------------------------------------------------
@@ -116,7 +116,9 @@
 			dedicacion			NUMERIC (6, 3)	NOT NULL,
 			tiempo_obra			NUMERIC (5, 2)	NOT NULL,
 			total				NUMERIC (20, 1)	NOT NULL,
-			porcentaje			NUMERIC (5, 2)	NOT NULL
+			porcentaje			NUMERIC (5, 2)	NOT NULL,
+			subtotal_items		NUMERIC (20, 1)	NOT NULL,
+			GastosPTotalPorcentaje	NUMERIC (5, 2)	NOT NULL
 		)
 
 		INSERT @T_GASTOS_PERSONAL (
@@ -128,7 +130,9 @@
 				dedicacion,
 				tiempo_obra,
 				total,
-				porcentaje
+				porcentaje,
+				subtotal_items,
+				GastosPTotalPorcentaje
 			)
 		SELECT	gp.id,
 				cs.nombre AS 'gastos_personal',
@@ -138,7 +142,9 @@
 				gp.dedicacion,
 				gp.tiempo_obra,
 				dbo.GastosPTotal(gp.id) AS 'total',
-				dbo.GastosPPorcentaje(gp.id) AS 'porcentaje'
+				dbo.GastosPPorcentaje(gp.id) AS 'porcentaje',
+				dbo.GastosPSTI() AS 'GastosPSTI',
+				dbo.GastosPTotalPorcentaje() AS 'GastosPTotalPorcentaje'
 		FROM t_gastos_personal gp
 				LEFT JOIN t_cargo_sueldo cs ON gp.id_empleado = cs.id
 				LEFT JOIN t_AIU aiu ON gp.id_AIU = aiu.id
@@ -161,22 +167,28 @@
 		----------------------------------------------------------------------------------------------------
 		DECLARE @T_IMPUESTOS TABLE 
 		(
-			id			INT				NOT NULL,
-			impuestos	VARCHAR (200)	NOT NULL,
-			valores		NUMERIC (18, 2)	NOT NULL,
-			porcentaje	NUMERIC (6, 3)	NOT NULL
+			id					INT				NOT NULL,
+			impuestos			VARCHAR (200)	NOT NULL,
+			valores				NUMERIC (18, 2)	NOT NULL,
+			porcentaje			NUMERIC (6, 3)	NOT NULL,
+			subtotal_items		NUMERIC (18, 2)	NOT NULL,
+			ImpuestosTotalPorcentajes	NUMERIC (6, 3)	NOT NULL
 		)
 
 		INSERT @T_IMPUESTOS (
 				id,
 				impuestos,
 				valores,
-				porcentaje
+				porcentaje,
+				subtotal_items,
+				ImpuestosTotalPorcentajes
 			)
 		SELECT	i.id,
 				i.descripcion AS 'impuestos',
 				((i.porcentaje / 100) * c.valor_contrato) AS 'valores',
-				i.porcentaje AS 'porcentaje'
+				i.porcentaje AS 'porcentaje',
+				dbo.ImpuestosSTI() AS 'ImpuestosSTI',
+				dbo.ImpuestosTotalPorcentajes() AS 'ImpuestosTotalPorcentajes'
 		FROM t_impuestos i
 				LEFT JOIN t_AIU aiu ON i.id_AIU = aiu.id
 				LEFT JOIN t_cliente c ON aiu.id_cliente = c.ID
@@ -188,7 +200,7 @@
 		HAVING COUNT(*) >= 1
 		ORDER BY i.id DESC
 
-		--SELECT * FROM @T_IMPUESTOS
+		SELECT * FROM @T_IMPUESTOS
 
 		----------------------------------------------------------------------------------------------------
 		DECLARE @T_ADMIN_IMPREVISTOS_UTIL TABLE 
@@ -196,7 +208,9 @@
 			id								INT				NOT NULL,
 			admision_imprevistos_utilidades	VARCHAR (200)	NOT NULL,
 			valores							NUMERIC (18, 2)	NULL,
-			porcentaje						NUMERIC (6, 3)	NULL
+			porcentaje						NUMERIC (6, 3)	NULL,
+			valor_total						NUMERIC(18, 2)	NULL,
+			porcentaje_total				NUMERIC(5, 2)	NULL
 		)
 
 		INSERT @T_ADMIN_IMPREVISTOS_UTIL (
@@ -221,3 +235,43 @@
 		ORDER BY ai.id DESC
 
 		--SELECT * FROM @T_ADMIN_IMPREVISTOS_UTIL
+
+		UPDATE @T_ADMIN_IMPREVISTOS_UTIL
+		SET
+			valores	=	(dbo.ValorAdmin())
+		FROM
+			@T_ADMIN_IMPREVISTOS_UTIL ADM
+		WHERE
+			valores	IS NULL
+
+		--SELECT * FROM @T_ADMIN_IMPREVISTOS_UTIL
+
+		UPDATE @T_ADMIN_IMPREVISTOS_UTIL
+		SET
+			porcentaje	=	(dbo.PorcentajeAdmin())
+		FROM
+			@T_ADMIN_IMPREVISTOS_UTIL ADM
+		WHERE
+			porcentaje	IS NULL
+
+		--SELECT * FROM @T_ADMIN_IMPREVISTOS_UTIL
+
+		UPDATE @T_ADMIN_IMPREVISTOS_UTIL
+		SET
+			valor_total			= (dbo.TotalAIUValor())
+		FROM
+			@T_ADMIN_IMPREVISTOS_UTIL ADM
+		WHERE
+			valor_total	IS NULL
+
+		--SELECT * FROM @T_ADMIN_IMPREVISTOS_UTIL
+
+		UPDATE @T_ADMIN_IMPREVISTOS_UTIL
+		SET
+			porcentaje_total	= (dbo.TotalAIUPorcentaje())
+		FROM
+			@T_ADMIN_IMPREVISTOS_UTIL ADM
+		WHERE
+			porcentaje_total	IS NULL
+
+		SELECT * FROM @T_ADMIN_IMPREVISTOS_UTIL
