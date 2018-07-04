@@ -34,7 +34,7 @@ AS
 
 	SET @operacion = UPPER(@operacion);
 	
-	IF @operacion = 'C1'
+	IF @operacion = 'C1'						--> Seleccion de tabla completa o por ID
 	BEGIN
 	
 		SELECT 
@@ -44,8 +44,24 @@ AS
 			horas_dia
 		FROM
 			t_cuadrilla
-	
+		WHERE
+			id = 
+				CASE 
+					WHEN ISNULL (@id, '') = '' THEN id 
+					ELSE @id
+				END
+
 	END ELSE	
+
+	IF @operacion = 'C2'					--> Reporte de una sola linea para la cuadrilla
+	BEGIN
+		SELECT	l.valor AS 'salario_minimo',
+				c.dias_labor AS 'dias_laborales',
+				c.horas_dia,
+				dbo.calcularFactorMultiplicadorTotal() as 'factor_prestacional'
+		FROM t_cuadrilla c
+		LEFT JOIN t_legal l ON c.id_salrio_minimo = l.id;
+	END ELSE
 
 	IF @operacion = 'B' OR @operacion = 'A'
 	BEGIN
@@ -64,18 +80,9 @@ AS
 			
 			IF @operacion = 'B'
 			BEGIN
-				IF NOT EXISTS(
-					SELECT 1 FROM t_cuadrilla WHERE id = @id 
-				)				
-					DELETE FROM t_cuadrilla 
-					WHERE 
-						id = @ID
-				ELSE
-					BEGIN
-						ROLLBACK TRAN
-						
-						RETURN;
-					END
+				DELETE FROM t_cuadrilla 
+				WHERE 
+					id = @ID
 			END 
 
 			COMMIT TRAN

@@ -22,13 +22,6 @@
 				a.factor_desperdicio
 		FROM t_apu a
 				LEFT JOIN t_unidades u ON a.id_unidad = u.id
-		GROUP BY
-			a.codigo			,
-			a.nombre			,
-			u.nombre			,
-			a.factor_hm			,
-			a.factor_desperdicio	
-		HAVING COUNT(*) >= 1
 		ORDER BY a.codigo DESC
 
 		--SELECT * FROM @T_INICIAL_APU
@@ -83,15 +76,6 @@
 				LEFT JOIN t_productos p ON ae.id_productos = p.id
 				LEFT JOIN t_unidades u ON p.id_unidad = u.id
 				LEFT JOIN t_apu a ON ae.id_apu = a.ID
-		GROUP BY
-			a.codigo		,
-			p.nombre		,
-			u.nombre		,
-			ae.cantidad		,
-			p.valor			,
-			ae.rendimiento	,
-			p.valor
-		HAVING COUNT(*) >= 1
 		ORDER BY a.codigo DESC
 
 		--SELECT * FROM @T_REPORTE_EQUIPO
@@ -132,22 +116,11 @@
 				am.cantidad AS 'cantidad',
 				p.valor AS 'valor_unitario',
 				a.factor_desperdicio
-				--(am.cantidad * p.valor * (1 + (a.factor_desperdicio / 100))) AS 'valor'
 		FROM t_apu_materiales am
 				LEFT JOIN t_productos p ON am.id_productos = p.id
 				LEFT JOIN t_unidades u ON p.id_unidad = u.id
 				LEFT JOIN t_apu a ON am.id_apu = a.ID
-		GROUP BY
-			a.codigo			,
-			p.nombre			,
-			u.nombre			,
-			am.cantidad			,
-			p.valor				,
-			a.factor_desperdicio	
-		HAVING COUNT(*) >= 1
 		ORDER BY a.codigo DESC
-
-		--SELECT * FROM @T_REPORTE_MATERIALES
 
 		UPDATE @T_REPORTE_MATERIALES
 		SET
@@ -155,10 +128,6 @@
 		FROM
 			@T_REPORTE_MATERIALES RM
 			LEFT JOIN t_productos p ON RM.materiales = p.nombre
-		--WHERE
-			--valor	IS NULL
-
-		--SELECT * FROM @T_REPORTE_MATERIALES
 
 		UPDATE @T_REPORTE_MATERIALES
 		SET
@@ -203,24 +172,13 @@
 				LEFT JOIN t_productos p ON atm.id_productos = p.id
 				LEFT JOIN t_unidades u ON p.id_unidad = u.id
 				LEFT JOIN t_apu a ON atm.id_apu = a.ID
-		GROUP BY
-			a.codigo			,
-			p.nombre			,
-			u.nombre			,
-			atm.distancia		,
-			p.valor				,
-			atm.tarifa				
-		HAVING COUNT(*) >= 1
 		ORDER BY a.codigo DESC
-
-		--SELECT * FROM @T_REPORTE_TRANSPORTE_MATERIALES
 
 		UPDATE @T_REPORTE_TRANSPORTE_MATERIALES
 		SET
 			total	=	dbo.TotalTransporteMaterial(apu)
 		FROM
 			@T_REPORTE_TRANSPORTE_MATERIALES RTM
-			--LEFT JOIN t_productos p ON RTM.transporte_materiales = p.nombre
 		WHERE
 			total	IS NULL
 
@@ -250,14 +208,7 @@
 				LEFT JOIN t_cuadrilla c ON amo.id_cuadrilla = c.id
 				LEFT JOIN t_cuadrilla_detalle cd ON c.id = cd.id_cuadrilla
 				LEFT JOIN t_apu a ON amo.id_apu = a.ID
-		GROUP BY
-			a.codigo		,
-			cd.descripcion	,
-			amo.rendimiento	
-		HAVING COUNT(*) >= 1
 		ORDER BY a.codigo DESC
-
-		--SELECT * FROM @T_REPORTE_MANO_OBRA
 
 		UPDATE @T_REPORTE_MANO_OBRA
 		SET
@@ -271,8 +222,6 @@
 		WHERE
 			jornal	IS NULL
 
-		--SELECT * FROM @T_REPORTE_MANO_OBRA
-
 		UPDATE @T_REPORTE_MANO_OBRA
 		SET
 			factor_prestacional	=	(dbo.calcularFactorMultiplicadorTotal() / 100)
@@ -281,8 +230,6 @@
 			--LEFT JOIN t_productos p ON RTM.transporte_materiales = p.nombre
 		WHERE
 			factor_prestacional	IS NULL
-
-		--SELECT * FROM @T_REPORTE_MANO_OBRA
 
 		UPDATE @T_REPORTE_MANO_OBRA
 		SET
@@ -296,8 +243,6 @@
 		WHERE
 			jornal_total	IS NULL
 
-		--SELECT * FROM @T_REPORTE_MANO_OBRA
-
 		UPDATE @T_REPORTE_MANO_OBRA
 		SET
 			valor	=	dbo.ManoObraValor(a.codigo,cdet.id)
@@ -310,8 +255,6 @@
 			left join t_apu a ON a.ID = amo.id_apu
 		WHERE
 			valor	IS NULL
-
-		--SELECT * FROM @T_REPORTE_MANO_OBRA
 
 		UPDATE @T_REPORTE_MANO_OBRA
 		SET

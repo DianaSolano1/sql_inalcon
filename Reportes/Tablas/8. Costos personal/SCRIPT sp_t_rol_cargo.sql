@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------
--- sp_t_perfil
+-- sp_t_rol_cargo
 IF OBJECT_ID('dbo.sp_t_rol_cargo') IS NOT NULL
 BEGIN
     DROP PROCEDURE dbo.sp_t_rol_cargo
@@ -31,7 +31,7 @@ AS
 
 	SET @operacion = UPPER(@operacion);
 	
-	IF @operacion = 'C1'
+	IF @operacion = 'C1'							--> Seleccion de tabla completa o por ID
 	BEGIN
 	
 		SELECT 
@@ -39,6 +39,12 @@ AS
 			nombre	
 		FROM
 			t_rol_cargo
+		WHERE
+			id = 
+				CASE 
+					WHEN ISNULL (@id, '') = '' THEN id 
+					ELSE @id
+				END
 	
 	END ELSE	
 
@@ -57,18 +63,9 @@ AS
 			
 			IF @operacion = 'B'
 			BEGIN
-				IF NOT EXISTS(
-					SELECT 1 FROM t_rol_cargo WHERE id = @id 
-				)				
-					DELETE FROM t_rol_cargo 
-					WHERE 
-						id = @ID
-				ELSE
-					BEGIN
-						ROLLBACK TRAN
-						
-						RETURN;
-					END
+				DELETE FROM t_rol_cargo 
+				WHERE 
+					id = @ID
 			END 
 
 			COMMIT TRAN

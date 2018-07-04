@@ -40,6 +40,12 @@ AS
 			nombre	
 		FROM
 			t_procedencia
+		WHERE
+			id = 
+				CASE 
+					WHEN ISNULL (@id, '') = '' THEN id 
+					ELSE @id
+				END
 	
 	END ELSE	
 
@@ -58,18 +64,9 @@ AS
 			
 			IF @operacion = 'B'
 			BEGIN
-				IF NOT EXISTS(
-					SELECT 1 FROM t_procedencia WHERE id = @id 
-				)				
-					DELETE FROM t_procedencia 
-					WHERE 
-						id = @ID
-				ELSE
-					BEGIN
-						ROLLBACK TRAN
-						
-						RETURN;
-					END
+				DELETE FROM t_procedencia 
+				WHERE 
+					id = @ID
 			END 
 
 			COMMIT TRAN

@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------
--- sp_t_perfil
+-- sp_t_apu_mano_obra
 IF OBJECT_ID('dbo.sp_t_apu_mano_obra') IS NOT NULL
 BEGIN
     DROP PROCEDURE dbo.sp_t_apu_mano_obra
@@ -34,7 +34,7 @@ AS
 
 	SET @operacion = UPPER(@operacion);
 	
-	IF @operacion = 'C1'
+	IF @operacion = 'C1'					--> Seleccion de tabla completa o por ID
 	BEGIN
 	
 		SELECT 
@@ -44,7 +44,101 @@ AS
 			rendimiento
 		FROM
 			t_apu_mano_obra
+		WHERE
+			id = 
+				CASE 
+					WHEN ISNULL (@id, '') = '' THEN id 
+					ELSE @id
+				END
+
+	END ELSE	
+
+	IF @operacion = 'C2'					--> Consulta de mano de obra en APU
+	BEGIN
 	
+		DECLARE @T_REPORTE_MANO_OBRA TABLE 
+		(
+			apu					VARCHAR(5)		NOT NULL,
+			mano_obra			VARCHAR (200)	NULL,
+			jornal				NUMERIC (18, 2)	NULL,
+			factor_prestacional	NUMERIC (5, 2)	NULL,
+			jornal_total		NUMERIC (18, 2)	NULL,
+			redimiento			NUMERIC (5, 2)	NOT NULL,
+			valor				NUMERIC (18, 2) NULL,
+			total				NUMERIC (18, 2)	NULL
+		)
+		
+		INSERT @T_REPORTE_MANO_OBRA (
+				apu,
+				mano_obra,
+				redimiento)
+		SELECT	a.codigo AS 'apu',
+				cd.descripcion AS 'mano_obra',
+				amo.rendimiento
+		FROM t_apu_mano_obra amo
+				LEFT JOIN t_cuadrilla c ON amo.id_cuadrilla = c.id
+				LEFT JOIN t_cuadrilla_detalle cd ON c.id = cd.id_cuadrilla
+				LEFT JOIN t_apu a ON amo.id_apu = a.ID
+		GROUP BY
+			a.codigo		,
+			cd.descripcion	,
+			amo.rendimiento	
+		HAVING COUNT(*) >= 1
+		ORDER BY a.codigo DESC
+
+		UPDATE @T_REPORTE_MANO_OBRA
+		SET
+			jornal	=	dbo.ManoObraJornal(a.codigo,cdet.id)
+		FROM
+			@T_REPORTE_MANO_OBRA RMO
+			LEFT JOIN t_cuadrilla_detalle cdet ON RMO.mano_obra = cdet.descripcion
+			left join t_cuadrilla c ON c.id = cdet.id_cuadrilla
+			left join t_apu_mano_obra amo ON amo.id_cuadrilla = c.id
+			left join t_apu a ON a.ID = amo.id_apu
+		WHERE
+			jornal	IS NULL
+
+		UPDATE @T_REPORTE_MANO_OBRA
+		SET
+			factor_prestacional	=	(dbo.calcularFactorMultiplicadorTotal() / 100)
+		FROM
+			@T_REPORTE_MANO_OBRA RMO
+		WHERE
+			factor_prestacional	IS NULL
+
+		UPDATE @T_REPORTE_MANO_OBRA
+		SET
+			jornal_total	=	dbo.ManoObraJornalTotal(a.codigo,cdet.id)
+		FROM
+			@T_REPORTE_MANO_OBRA RMO
+			LEFT JOIN t_cuadrilla_detalle cdet ON RMO.mano_obra = cdet.descripcion
+			left join t_cuadrilla c ON c.id = cdet.id_cuadrilla
+			left join t_apu_mano_obra amo ON amo.id_cuadrilla = c.id
+			left join t_apu a ON a.ID = amo.id_apu
+		WHERE
+			jornal_total	IS NULL
+
+		UPDATE @T_REPORTE_MANO_OBRA
+		SET
+			valor	=	dbo.ManoObraValor(a.codigo,cdet.id)
+		FROM
+			@T_REPORTE_MANO_OBRA RMO
+			--LEFT JOIN t_productos p ON RTM.transporte_materiales = p.nombre
+			LEFT JOIN t_cuadrilla_detalle cdet ON RMO.mano_obra = cdet.descripcion
+			left join t_cuadrilla c ON c.id = cdet.id_cuadrilla
+			left join t_apu_mano_obra amo ON amo.id_cuadrilla = c.id
+			left join t_apu a ON a.ID = amo.id_apu
+		WHERE
+			valor	IS NULL
+
+		UPDATE @T_REPORTE_MANO_OBRA
+		SET
+			total	=	dbo.TotalManoObra(apu)
+		FROM
+			@T_REPORTE_MANO_OBRA RMO
+		WHERE
+			total	IS NULL
+
 	END ELSE	
 
 	IF @operacion = 'B' OR @operacion = 'A'
@@ -64,18 +158,9 @@ AS
 			
 			IF @operacion = 'B'
 			BEGIN
-				IF NOT EXISTS(
-					SELECT 1 FROM t_apu_mano_obra WHERE id = @id 
-				)				
-					DELETE FROM t_apu_mano_obra 
-					WHERE 
-						id = @ID
-				ELSE
-					BEGIN
-						ROLLBACK TRAN
-						
-						RETURN;
-					END
+				DELETE FROM t_apu_mano_obra 
+				WHERE 
+					id = @ID
 			END 
 
 			COMMIT TRAN

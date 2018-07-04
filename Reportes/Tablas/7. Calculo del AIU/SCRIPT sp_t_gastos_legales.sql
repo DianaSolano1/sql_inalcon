@@ -34,7 +34,7 @@ AS
 
 	SET @operacion = UPPER(@operacion);
 	
-	IF @operacion = 'C1'
+	IF @operacion = 'C1'							--> Seleccion de tabla completa o por ID
 	BEGIN
 	
 		SELECT 
@@ -45,6 +45,28 @@ AS
 			porcentaje
 		FROM
 			t_gastos_legales
+		WHERE
+			id = 
+				CASE 
+					WHEN ISNULL (@id, '') = '' THEN id 
+					ELSE @id
+				END
+	
+	END ELSE
+	
+	IF @operacion = 'C2'							--> Seleccion de tabla completa o por ID
+	BEGIN
+	
+		SELECT	gl.id,
+				gl.descripcion AS 'gastos_legales',
+				gl.valores,
+				dbo.GastosLPorcentaje(gl.id) AS 'porcentaje',
+				dbo.GastosLSTIValores() as 'GastosLSTIValores',
+				dbo.GastosLSTIPorcentajes() as 'GastosLSTIPorcentajes'
+		FROM t_gastos_legales gl
+				LEFT JOIN t_AIU a ON gl.id_AIU = a.id
+				LEFT JOIN t_cliente cl ON a.id_cliente = cl.ID
+		ORDER BY gl.id
 	
 	END ELSE	
 
@@ -66,18 +88,9 @@ AS
 			
 			IF @operacion = 'B'
 			BEGIN
-				IF NOT EXISTS(
-					SELECT 1 FROM t_gastos_legales WHERE id = @id 
-				)				
-					DELETE FROM t_gastos_legales 
-					WHERE 
-						id = @ID
-				ELSE
-					BEGIN
-						ROLLBACK TRAN
-						
-						RETURN;
-					END
+				DELETE FROM t_gastos_legales 
+				WHERE 
+					id = @ID
 			END 
 
 			COMMIT TRAN

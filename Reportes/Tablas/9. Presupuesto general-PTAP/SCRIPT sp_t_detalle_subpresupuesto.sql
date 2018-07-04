@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------
--- sp_t_perfil
+-- sp_t_detalle_subpresupuesto
 IF OBJECT_ID('dbo.sp_t_detalle_subpresupuesto') IS NOT NULL
 BEGIN
     DROP PROCEDURE dbo.sp_t_detalle_subpresupuesto
@@ -35,7 +35,7 @@ AS
 
 	SET @operacion = UPPER(@operacion);
 	
-	IF @operacion = 'C1'
+	IF @operacion = 'C1'							--> Seleccion de tabla completa o por ID
 	BEGIN
 	
 		SELECT 
@@ -47,8 +47,35 @@ AS
 			cantidad
 		FROM
 			t_detalle_subpresupuesto
+		WHERE
+			id = 
+				CASE 
+					WHEN ISNULL (@id, '') = '' THEN id 
+					ELSE @id
+				END
 	
-	END ELSE	
+	END ELSE
+
+	IF @operacion = 'C2'							--> Consulta el detalle del subpresupuesto
+	BEGIN
+	
+		SELECT	pg.item,
+				s.item,
+				ds.item,
+				apu.codigo,
+				apu.nombre,
+				u.nombre,
+				dbo.TotalApuInicial(apu.codigo),
+				ds.cantidad,
+				dbo.ValorTotalDETAPULleno(apu.codigo,ds.item)
+		FROM t_detalle_subpresupuesto ds
+				LEFT JOIN t_subpresupuesto s ON ds.id_subpresupuesto = s.ID
+				LEFT JOIN t_presupuesto_general pg ON ds.id_presupuesto = pg.id
+				LEFT JOIN t_apu apu ON ds.id_APU = apu.ID
+				LEFT JOIN t_unidades u ON apu.id_unidad = u.id
+		ORDER BY pg.item
+	
+	END ELSE
 
 	IF @operacion = 'B' OR @operacion = 'A'
 	BEGIN
@@ -69,18 +96,9 @@ AS
 			
 			IF @operacion = 'B'
 			BEGIN
-				IF NOT EXISTS(
-					SELECT 1 FROM t_detalle_subpresupuesto WHERE id = @id 
-				)				
-					DELETE FROM t_detalle_subpresupuesto 
-					WHERE 
-						id = @ID
-				ELSE
-					BEGIN
-						ROLLBACK TRAN
-						
-						RETURN;
-					END
+				DELETE FROM t_detalle_subpresupuesto 
+				WHERE 
+					id = @ID
 			END 
 
 			COMMIT TRAN

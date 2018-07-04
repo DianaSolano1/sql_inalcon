@@ -34,7 +34,7 @@ AS
 
 	SET @operacion = UPPER(@operacion);
 	
-	IF @operacion = 'C1'
+	IF @operacion = 'C1'							--> Seleccion de tabla completa o por ID
 	BEGIN
 	
 		SELECT 
@@ -44,6 +44,66 @@ AS
 			cantidad
 		FROM
 			t_apu_materiales
+		WHERE
+			id = 
+				CASE 
+					WHEN ISNULL (@id, '') = '' THEN id 
+					ELSE @id
+				END
+	
+	END ELSE	
+
+	IF @operacion = 'C2'							--> Consulta de materiales en APU
+	BEGIN
+	
+	DECLARE @T_REPORTE_MATERIALES TABLE 
+		(
+			apu					VARCHAR(5)		NOT NULL,
+			materiales			VARCHAR (200)	NOT NULL,
+			unidad				VARCHAR (30)	NOT NULL,
+			cantidad			NUMERIC (5, 2)	NOT NULL,
+			valor_unitario		NUMERIC (18, 2)	NULL,
+			factor_desperdicio	NUMERIC (5, 2)	NOT NULL,
+			valor				NUMERIC (18, 2)	NULL,
+			total				NUMERIC (18, 2)	NULL
+		)
+		
+		INSERT @T_REPORTE_MATERIALES (
+				apu,
+				materiales,
+				unidad,
+				cantidad,
+				valor_unitario,
+				factor_desperdicio)
+		SELECT	
+			a.codigo AS 'apu',
+			p.nombre AS 'materiales',
+			u.nombre AS 'unidad',
+			am.cantidad AS 'cantidad',
+			p.valor AS 'valor_unitario',
+			a.factor_desperdicio
+		FROM 
+			t_apu_materiales am
+			LEFT JOIN t_productos p ON am.id_productos = p.id
+			LEFT JOIN t_unidades u ON p.id_unidad = u.id
+			LEFT JOIN t_apu a ON am.id_apu = a.ID
+		ORDER BY a.codigo DESC
+
+		UPDATE @T_REPORTE_MATERIALES
+		SET
+			valor	=	dbo.calcularValorMaterial(apu,p.id)
+		FROM
+			@T_REPORTE_MATERIALES RM
+			LEFT JOIN t_productos p ON RM.materiales = p.nombre
+
+		UPDATE @T_REPORTE_MATERIALES
+		SET
+			total	=	dbo.TotalMaterial(apu)
+		FROM
+			@T_REPORTE_MATERIALES RM
+			LEFT JOIN t_productos p ON RM.materiales = p.nombre
+		WHERE
+			total	IS NULL
 	
 	END ELSE	
 
@@ -64,18 +124,9 @@ AS
 			
 			IF @operacion = 'B'
 			BEGIN
-				IF NOT EXISTS(
-					SELECT 1 FROM t_apu_materiales WHERE id = @id 
-				)				
-					DELETE FROM t_apu_materiales 
-					WHERE 
-						id = @ID
-				ELSE
-					BEGIN
-						ROLLBACK TRAN
-						
-						RETURN;
-					END
+				DELETE FROM t_apu_materiales 
+				WHERE 
+					id = @ID
 			END 
 
 			COMMIT TRAN

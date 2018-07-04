@@ -12,14 +12,12 @@
 				cl.valor AS 'salario_minimo',
 				cd.dias_labor AS 'dias_laborales',
 				((1 + (je.porcentaje / 100)) * (cl.valor / cd.dias_labor)) AS 'valor_jornal',
-				--(1 + (je.porcentaje / 100)) AS 'porcentaje+1',
-				--(cl.valor / cd.dias_labor) AS 'salario/dias',
 				je.sn_ayudante AS 'cargo'
 		FROM t_jornal_empleado je
 		LEFT JOIN t_cuadrilla cd ON je.id_cuadrilla = cd.id
 		LEFT JOIN t_legal cl ON cd.id_salrio_minimo = cl.id;
 		
-		DECLARE @T_CUADRILLAS TABLE
+		DECLARE @T_CUADRILLA TABLE
 				(
 					id_jornal_empleado		INT				NOT NULL,
 					descripcion_cuadrillas	VARCHAR (200)	NOT NULL,
@@ -30,7 +28,7 @@
 					cuadrilla_h_prestacion	NUMERIC(18,2)	NULL	
 				)
 
-		INSERT @T_CUADRILLAS (
+		INSERT @T_CUADRILLA (
 			id_jornal_empleado,
 			descripcion_cuadrillas,
 			cantidad_oficial,
@@ -44,44 +42,36 @@
 			(
 				-- para el de oficial
 				(cdet.cantidad_oficial * dbo.ObtenerValorJornal(cdet.id_jornal_empleado,  1))
-
 				+
 				-- para el de ayudante
 				(cdet.cantidad_ayudante * dbo.ObtenerValorJornal(cdet.id_jornal_empleado, 0))
-
 			) as 'valor_jornal_ayudante'
 
 		FROM t_cuadrilla_detalle cdet
 			LEFT JOIN t_jornal_empleado je ON cdet.id_jornal_empleado = je.id
-		GROUP BY
-			cdet.id_jornal_empleado,
-			cdet.descripcion,
-			cdet.cantidad_oficial,
-			cdet.cantidad_ayudante
-		HAVING COUNT(*) >= 1
 		ORDER BY cdet.descripcion DESC;
 
 
-		--SELECT * FROM @T_CUADRILLAS
+		--SELECT * FROM @T_CUADRILLA
 
-		UPDATE @T_CUADRILLAS
+		UPDATE @T_CUADRILLA
 		SET
 			valor_jornal_prestacion	=	(valor_jornal * dbo.calcularFactorMultiplicadorTotal())
 		FROM
-			@T_CUADRILLAS CFM
+			@T_CUADRILLA CFM
 		WHERE
 			valor_jornal_prestacion	IS NULL
 
-		--SELECT * FROM @T_CUADRILLAS
+		--SELECT * FROM @T_CUADRILLA
 
-		UPDATE @T_CUADRILLAS
+		UPDATE @T_CUADRILLA
 		SET
 			cuadrilla_h_prestacion	=	(CFM.valor_jornal_prestacion * c.horas_dia)
 		FROM
-			@T_CUADRILLAS CFM
+			@T_CUADRILLA CFM
 			LEFT JOIN t_jornal_empleado je ON CFM.id_jornal_empleado = je.id
 			LEFT JOIN t_cuadrilla c ON je.id_cuadrilla = c.id
 		WHERE
 			cuadrilla_h_prestacion	IS NULL
 
-		SELECT * FROM @T_CUADRILLAS
+		SELECT * FROM @T_CUADRILLA

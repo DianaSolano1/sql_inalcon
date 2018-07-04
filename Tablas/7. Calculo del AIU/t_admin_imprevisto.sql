@@ -1,11 +1,11 @@
 USE prestamos
 GO
 
-IF OBJECT_ID ('dbo.t_admin_imprevistos') IS NOT NULL
-	DROP TABLE dbo.t_admin_imprevistos
+IF OBJECT_ID ('dbo.t_admin_imprevisto') IS NOT NULL
+	DROP TABLE dbo.t_admin_imprevisto
 GO
 
-CREATE TABLE dbo.t_admin_imprevistos
+CREATE TABLE dbo.t_admin_imprevisto
 	(
 	id				INT IDENTITY PRIMARY KEY NOT NULL,
 	id_AIU			INT NOT NULL,

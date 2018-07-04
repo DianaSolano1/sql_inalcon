@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------
--- sp_t_perfil
+-- sp_t_AIU
 IF OBJECT_ID('dbo.sp_t_AIU') IS NOT NULL
 BEGIN
     DROP PROCEDURE dbo.sp_t_AIU
@@ -32,7 +32,7 @@ AS
 
 	SET @operacion = UPPER(@operacion);
 	
-	IF @operacion = 'C1'
+	IF @operacion = 'C1'							--> Seleccion de tabla completa o por ID
 	BEGIN
 	
 		SELECT 
@@ -40,6 +40,24 @@ AS
 			id_cliente
 		FROM
 			t_AIU
+		WHERE
+			id = 
+				CASE 
+					WHEN ISNULL (@id, '') = '' THEN id 
+					ELSE @id
+				END
+	
+	END ELSE	
+
+	IF @operacion = 'C2'							--> Consulta el valor directo del prouecto
+	BEGIN
+	
+		SELECT
+			c.valor_contrato AS 'valor_directo_proyecto'
+		FROM 
+			t_AIU a
+			LEFT JOIN t_cliente c ON a.id_cliente = c.ID
+		ORDER BY c.valor_contrato DESC
 	
 	END ELSE	
 
@@ -58,18 +76,9 @@ AS
 			
 			IF @operacion = 'B'
 			BEGIN
-				IF NOT EXISTS(
-					SELECT 1 FROM t_AIU WHERE id = @id 
-				)				
-					DELETE FROM t_AIU 
-					WHERE 
-						id = @ID
-				ELSE
-					BEGIN
-						ROLLBACK TRAN
-						
-						RETURN;
-					END
+				DELETE FROM t_AIU 
+				WHERE 
+					id = @ID
 			END 
 
 			COMMIT TRAN

@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------
--- sp_t_perfil
+-- sp_t_experiencia
 IF OBJECT_ID('dbo.sp_t_experiencia') IS NOT NULL
 BEGIN
     DROP PROCEDURE dbo.sp_t_experiencia
@@ -39,6 +39,12 @@ AS
 			nombre	
 		FROM
 			t_experiencia
+		WHERE
+			id = 
+				CASE 
+					WHEN ISNULL (@id, '') = '' THEN id 
+					ELSE @id
+				END
 	
 	END ELSE	
 
@@ -57,18 +63,9 @@ AS
 			
 			IF @operacion = 'B'
 			BEGIN
-				IF NOT EXISTS(
-					SELECT 1 FROM t_experiencia WHERE id = @id 
-				)				
-					DELETE FROM t_experiencia 
-					WHERE 
-						id = @ID
-				ELSE
-					BEGIN
-						ROLLBACK TRAN
-						
-						RETURN;
-					END
+				DELETE FROM t_experiencia 
+				WHERE 
+					id = @ID
 			END 
 
 			COMMIT TRAN

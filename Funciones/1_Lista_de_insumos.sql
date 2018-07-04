@@ -18,7 +18,7 @@ AS BEGIN
 					LEFT JOIN t_legal l ON p.id_iva = l.id
 					WHERE p.id = @id_producto)
 
-   IF @tieneIva = 1							--> S�
+   IF @tieneIva = 1							--> Si
    BEGIN
        SET @precioARetornar =   @precioNormal * @valorIva
    END

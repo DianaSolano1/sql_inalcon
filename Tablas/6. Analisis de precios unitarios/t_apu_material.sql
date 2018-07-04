@@ -1,11 +1,11 @@
 USE prestamos
 GO
 
-IF OBJECT_ID ('dbo.t_apu_materiales') IS NOT NULL
-	DROP TABLE dbo.t_apu_materiales
+IF OBJECT_ID ('dbo.t_apu_material') IS NOT NULL
+	DROP TABLE dbo.t_apu_material
 GO
 
-CREATE TABLE dbo.t_apu_materiales
+CREATE TABLE dbo.t_apu_material
 	(
 	ID				INT IDENTITY PRIMARY KEY NOT NULL,
 	id_apu			INT NOT NULL,

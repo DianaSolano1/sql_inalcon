@@ -33,17 +33,7 @@
 				LEFT JOIN t_experiencia ex ON cp.id_experiencia = ex.ID
 				LEFT JOIN t_cargo_sueldo cs ON cp.id_experiencia = cs.ID
 				LEFT JOIN t_rol_cargo rc ON cs.id_rol = rc.ID
-		GROUP BY
-			rc.nombre			,
-			cs.nombre			,
-			cp.cantidad			,
-			ex.nombre			,
-			cp.dedicacion		,
-			cp.tiempo_ejecucion	,
-			cs.sueldo_basico	,
-			cs.ID
-		HAVING COUNT(*) >= 1
-		ORDER BY rc.nombre DESC
+		ORDER BY rc.nombre 
 
 		SELECT * FROM @T_COSTOS_PERSONAL
 
@@ -63,8 +53,6 @@
 			)
 		SELECT	(dbo.CostoPersonalSubTotal()),
 				2
-
-		--SELECT * FROM @T_TOTAL_COSTOS_PERSONAL
 
 		UPDATE @T_TOTAL_COSTOS_PERSONAL
 		SET
@@ -109,16 +97,7 @@
 				dbo.CostoDirectoParcialTotal()
 		FROM t_costos_directos cd
 				LEFT JOIN t_unidades u ON cd.id_unidad = u.id
-		GROUP BY
-			cd.nombre			,
-			cd.cantidad			,
-			u.nombre			,
-			cd.dedicacion		,
-			cd.tiempo_ejecucion	,
-			cd.tarifa			,
-			cd.id
-		HAVING COUNT(*) >= 1
-		ORDER BY cd.nombre DESC
+		ORDER BY cd.nombre 
 
 		SELECT * FROM @T_OTROS_COSTOS_DIRECTOS
 
@@ -126,16 +105,17 @@
 		DECLARE @T_SUPERVISION_INTERVENTORIA TABLE 
 		(
 			total_costos_interventoria	NUMERIC (18, 2)	NOT NULL,
-			con_iva						NUMERIC (18, 2)	NOT NULL,
+			mas_iva						NUMERIC (18, 2)	NOT NULL,
 			costo_total					NUMERIC (18, 2)	NOT NULL
 		)
 
 		INSERT @T_SUPERVISION_INTERVENTORIA (
 				total_costos_interventoria,
-				con_iva,
+				mas_iva,
 				costo_total
 			)
-		SELECT	dbo.TotalCostosInterventoria(),
-				
+		SELECT	dbo.TotalCostosInterventoria() AS Total_Costos_Interventoria,
+				dbo.TotalCostosMasIva() AS Total_Costos_De_Iva,
+				dbo.TotalCostos() AS Total_Costos
 
 		SELECT * FROM @T_SUPERVISION_INTERVENTORIA

@@ -33,7 +33,7 @@ AS
 
 	SET @operacion = UPPER(@operacion);
 	
-	IF @operacion = 'C1'
+	IF @operacion = 'C1'							--> Seleccion de tabla completa o por ID
 	BEGIN
 	
 		SELECT 
@@ -43,8 +43,30 @@ AS
 			porcentaje
 		FROM
 			t_impuestos
+		WHERE
+			id = 
+				CASE 
+					WHEN ISNULL (@id, '') = '' THEN id 
+					ELSE @id
+				END
 	
-	END ELSE	
+	END ELSE
+
+	IF @operacion = 'C2'							--> Consulta de impuestos
+	BEGIN
+	
+		SELECT	i.id,
+				i.descripcion AS 'impuestos',
+				((i.porcentaje / 100) * c.valor_contrato) AS 'valores',
+				i.porcentaje AS 'porcentaje',
+				dbo.ImpuestosSTI() AS 'ImpuestosSTI',
+				dbo.ImpuestosTotalPorcentajes() AS 'ImpuestosTotalPorcentajes'
+		FROM t_impuestos i
+				LEFT JOIN t_AIU aiu ON i.id_AIU = aiu.id
+				LEFT JOIN t_cliente c ON aiu.id_cliente = c.ID
+		ORDER BY i.id 
+	
+	END ELSE
 
 	IF @operacion = 'B' OR @operacion = 'A'
 	BEGIN
@@ -63,18 +85,9 @@ AS
 			
 			IF @operacion = 'B'
 			BEGIN
-				IF NOT EXISTS(
-					SELECT 1 FROM t_impuestos WHERE id = @id 
-				)				
-					DELETE FROM t_impuestos 
-					WHERE 
-						id = @ID
-				ELSE
-					BEGIN
-						ROLLBACK TRAN
-						
-						RETURN;
-					END
+				DELETE FROM t_impuestos 
+				WHERE 
+					id = @ID
 			END 
 
 			COMMIT TRAN

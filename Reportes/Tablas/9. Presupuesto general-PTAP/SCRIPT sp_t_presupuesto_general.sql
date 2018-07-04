@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------
--- sp_t_perfil
+-- sp_t_presupuesto_general
 IF OBJECT_ID('dbo.sp_t_presupuesto_general') IS NOT NULL
 BEGIN
     DROP PROCEDURE dbo.sp_t_presupuesto_general
@@ -34,7 +34,7 @@ AS
 
 	SET @operacion = UPPER(@operacion);
 	
-	IF @operacion = 'C1'
+	IF @operacion = 'C1'							--> Seleccion de tabla completa o por ID
 	BEGIN
 	
 		SELECT 
@@ -45,6 +45,29 @@ AS
 			cantidad
 		FROM
 			t_presupuesto_general
+		WHERE
+			id = 
+				CASE 
+					WHEN ISNULL (@id, '') = '' THEN id 
+					ELSE @id
+				END
+	
+	END ELSE
+
+	IF @operacion = 'C2'							--> Consulta del presupuesto general
+	BEGIN
+	
+		SELECT	pg.item,
+				apu.codigo,
+				apu.nombre,
+				u.nombre,
+				dbo.TotalApuInicial(apu.codigo),
+				pg.cantidad,
+				dbo.ValorTotalAPULleno(apu.codigo,pg.item)
+		FROM t_presupuesto_general pg
+				LEFT JOIN t_apu apu ON pg.id_APU = apu.ID
+				LEFT JOIN t_unidades u ON apu.id_unidad = u.id
+		ORDER BY pg.item
 	
 	END ELSE	
 
@@ -66,18 +89,9 @@ AS
 			
 			IF @operacion = 'B'
 			BEGIN
-				IF NOT EXISTS(
-					SELECT 1 FROM t_presupuesto_general WHERE id = @id 
-				)				
-					DELETE FROM t_presupuesto_general 
-					WHERE 
-						id = @ID
-				ELSE
-					BEGIN
-						ROLLBACK TRAN
-						
-						RETURN;
-					END
+				DELETE FROM t_presupuesto_general 
+				WHERE 
+					id = @ID
 			END 
 
 			COMMIT TRAN

@@ -40,8 +40,14 @@ AS
 			nombre	
 		FROM
 			t_rango
-	
-	END ELSE	
+		WHERE
+			id = 
+				CASE 
+					WHEN ISNULL (@id, '') = '' THEN id 
+					ELSE @id
+				END
+
+	END ELSE
 
 	IF @operacion = 'B' OR @operacion = 'A'
 	BEGIN

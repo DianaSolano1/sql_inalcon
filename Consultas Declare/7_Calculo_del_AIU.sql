@@ -8,19 +8,14 @@
 		SELECT	c.valor_contrato AS 'valor_directo_proyecto'
 		FROM t_AIU a
 				LEFT JOIN t_cliente c ON a.id_cliente = c.ID
-		GROUP BY
-			c.valor_contrato
-		HAVING COUNT(*) >= 1
-		ORDER BY c.valor_contrato DESC
-
-		--SELECT * FROM @T_VALOR_DIRECTO
+		ORDER BY c.valor_contrato 
 
 
 		----------------------------------------------------------------------------------------------------
 		DECLARE @T_GASTOS_CAMPO_OFICINA TABLE 
 		(
 			id						INT				NOT NULL,
-			gastos_campo_oficinas	VARCHAR (200)	NOT NULL,
+			gasto_campo_oficina	VARCHAR (200)	NOT NULL,
 			valor					NUMERIC (19, 3)	NOT NULL,
 			dedicacion				NUMERIC (5, 2)	NOT NULL,
 			tiempo_obra				NUMERIC (5, 2)	NOT NULL,
@@ -32,7 +27,7 @@
 
 		INSERT @T_GASTOS_CAMPO_OFICINA (
 				id,
-				gastos_campo_oficinas,
+				gasto_campo_oficina,
 				valor,
 				dedicacion,
 				tiempo_obra,
@@ -42,7 +37,7 @@
 				GastosCOSTIPorcentaje
 			)
 		SELECT	co.id,
-				co.descripcion AS 'gastos_campo_oficinas',
+				co.descripcion AS 'gasto_campo_oficina',
 				co.valor,
 				co.dedicacion,
 				co.tiempo_obra,
@@ -50,18 +45,10 @@
 				dbo.PorcentajeGastosCO(co.id) AS 'porcentaje',
 				dbo.GastosCOSTIValor() AS 'GastosCOSTIValor',
 				dbo.GastosCOSTIPorcentaje() AS 'GastosCOSTIPorcentaje'
-		FROM t_gastos_campos_oficinas co
+		FROM t_gasto_campo_oficina co
 				LEFT JOIN t_AIU aiu ON co.id_AIU = aiu.id
 				LEFT JOIN t_cliente c ON aiu.id_cliente = c.ID
-		GROUP BY
-			co.id			,
-			co.descripcion	,
-			co.valor		,
-			co.dedicacion	,
-			co.tiempo_obra	,
-			c.valor_contrato
-		HAVING COUNT(*) >= 1
-		ORDER BY co.id DESC
+		ORDER BY co.id 
 
 		SELECT * FROM @T_GASTOS_CAMPO_OFICINA
 
@@ -94,13 +81,7 @@
 		FROM t_gastos_legales gl
 				LEFT JOIN t_AIU a ON gl.id_AIU = a.id
 				LEFT JOIN t_cliente cl ON a.id_cliente = cl.ID
-		GROUP BY
-			gl.id				,
-			gl.descripcion		,
-			gl.valores			,
-			cl.valor_contrato
-		HAVING COUNT(*) >= 1
-		ORDER BY gl.id DESC
+		ORDER BY gl.id 
 
 		SELECT * FROM @T_GASTOS_LEGALES
 
@@ -149,17 +130,7 @@
 				LEFT JOIN t_cargo_sueldo cs ON gp.id_empleado = cs.id
 				LEFT JOIN t_AIU aiu ON gp.id_AIU = aiu.id
 				LEFT JOIN t_cliente c ON aiu.id_cliente = c.ID
-		GROUP BY
-			gp.id					,
-			cs.nombre				,
-			gp.cantidad_empleado	,
-			gp.factor_prestacional	,
-			gp.valor				,
-			gp.dedicacion			,
-			gp.tiempo_obra			,
-			c.valor_contrato		
-		HAVING COUNT(*) >= 1
-		ORDER BY gp.id DESC
+		ORDER BY gp.id 
 
 		SELECT * FROM @T_GASTOS_PERSONAL
 
@@ -192,13 +163,7 @@
 		FROM t_impuestos i
 				LEFT JOIN t_AIU aiu ON i.id_AIU = aiu.id
 				LEFT JOIN t_cliente c ON aiu.id_cliente = c.ID
-		GROUP BY
-			i.id			,
-			i.descripcion	,
-			i.porcentaje	,
-			c.valor_contrato
-		HAVING COUNT(*) >= 1
-		ORDER BY i.id DESC
+		ORDER BY i.id 
 
 		SELECT * FROM @T_IMPUESTOS
 
@@ -226,15 +191,7 @@
 		FROM t_admin_imprevistos ai
 				LEFT JOIN t_AIU aiu ON ai.id_AIU = aiu.id
 				LEFT JOIN t_cliente c ON aiu.id_cliente = c.ID
-		GROUP BY
-			ai.id				,
-			ai.descripcion		,
-			c.valor_contrato	,
-			ai.porcentaje			
-		HAVING COUNT(*) >= 1
-		ORDER BY ai.id DESC
-
-		--SELECT * FROM @T_ADMIN_IMPREVISTOS_UTIL
+		ORDER BY ai.id 
 
 		UPDATE @T_ADMIN_IMPREVISTOS_UTIL
 		SET
@@ -244,8 +201,6 @@
 		WHERE
 			valores	IS NULL
 
-		--SELECT * FROM @T_ADMIN_IMPREVISTOS_UTIL
-
 		UPDATE @T_ADMIN_IMPREVISTOS_UTIL
 		SET
 			porcentaje	=	(dbo.PorcentajeAdmin())
@@ -254,8 +209,6 @@
 		WHERE
 			porcentaje	IS NULL
 
-		--SELECT * FROM @T_ADMIN_IMPREVISTOS_UTIL
-
 		UPDATE @T_ADMIN_IMPREVISTOS_UTIL
 		SET
 			valor_total			= (dbo.TotalAIUValor())
@@ -263,8 +216,6 @@
 			@T_ADMIN_IMPREVISTOS_UTIL ADM
 		WHERE
 			valor_total	IS NULL
-
-		--SELECT * FROM @T_ADMIN_IMPREVISTOS_UTIL
 
 		UPDATE @T_ADMIN_IMPREVISTOS_UTIL
 		SET

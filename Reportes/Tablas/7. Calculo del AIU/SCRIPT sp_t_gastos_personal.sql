@@ -37,7 +37,7 @@ AS
 
 	SET @operacion = UPPER(@operacion);
 	
-	IF @operacion = 'C1'
+	IF @operacion = 'C1'							--> Seleccion de tabla completa o por ID
 	BEGIN
 	
 		SELECT 
@@ -51,6 +51,34 @@ AS
 			tiempo_obra
 		FROM
 			t_gastos_personal
+		WHERE
+			id = 
+				CASE 
+					WHEN ISNULL (@id, '') = '' THEN id 
+					ELSE @id
+				END
+	
+	END ELSE	
+
+	IF @operacion = 'C2'							--> Consulta gastos de personal
+	BEGIN
+	
+		SELECT	gp.id,
+				cs.nombre AS 'gastos_personal',
+				gp.cantidad_empleado AS 'cantidad',
+				gp.factor_prestacional,
+				gp.valor,
+				gp.dedicacion,
+				gp.tiempo_obra,
+				dbo.GastosPTotal(gp.id) AS 'total',
+				dbo.GastosPPorcentaje(gp.id) AS 'porcentaje',
+				dbo.GastosPSTI() AS 'GastosPSTI',
+				dbo.GastosPTotalPorcentaje() AS 'GastosPTotalPorcentaje'
+		FROM t_gastos_personal gp
+				LEFT JOIN t_cargo_sueldo cs ON gp.id_empleado = cs.id
+				LEFT JOIN t_AIU aiu ON gp.id_AIU = aiu.id
+				LEFT JOIN t_cliente c ON aiu.id_cliente = c.ID
+		ORDER BY gp.id 
 	
 	END ELSE	
 
@@ -75,18 +103,9 @@ AS
 			
 			IF @operacion = 'B'
 			BEGIN
-				IF NOT EXISTS(
-					SELECT 1 FROM t_gastos_personal WHERE id = @id 
-				)				
-					DELETE FROM t_gastos_personal 
-					WHERE 
-						id = @ID
-				ELSE
-					BEGIN
-						ROLLBACK TRAN
-						
-						RETURN;
-					END
+				DELETE FROM t_gastos_personal 
+				WHERE 
+					id = @ID
 			END 
 
 			COMMIT TRAN

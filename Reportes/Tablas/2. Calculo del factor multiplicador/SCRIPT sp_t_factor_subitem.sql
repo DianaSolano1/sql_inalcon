@@ -46,7 +46,13 @@ AS
 			porcentaje		
 		FROM
 			t_factor_subitem
-	
+		WHERE
+			id = 
+				CASE 
+					WHEN ISNULL (@id, '') = '' THEN id 
+					ELSE @id
+				END
+
 	END ELSE	
 
 	IF @operacion = 'B' OR @operacion = 'A'
@@ -67,18 +73,9 @@ AS
 			
 			IF @operacion = 'B'
 			BEGIN
-				IF NOT EXISTS(
-					SELECT 1 FROM t_factor_subitem WHERE id = @id 
-				)				
-					DELETE FROM t_factor_subitem 
-					WHERE 
-						id = @ID
-				ELSE
-					BEGIN
-						ROLLBACK TRAN
-						
-						RETURN;
-					END
+				DELETE FROM t_factor_subitem 
+				WHERE 
+					id = @ID
 			END 
 
 			COMMIT TRAN

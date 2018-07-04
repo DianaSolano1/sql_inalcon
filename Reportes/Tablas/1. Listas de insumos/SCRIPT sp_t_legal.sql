@@ -44,6 +44,12 @@ AS
 			valor
 		FROM
 			t_legal
+		WHERE
+			id = 
+				CASE 
+					WHEN ISNULL (@id, '') = '' THEN id 					
+					ELSE @id
+				END
 	
 	END ELSE	
 
@@ -64,18 +70,9 @@ AS
 			
 			IF @operacion = 'B'
 			BEGIN
-				IF NOT EXISTS(
-					SELECT 1 FROM t_legal WHERE id = @id 
-				)				
-					DELETE FROM t_legal 
-					WHERE 
-						id = @ID
-				ELSE
-					BEGIN
-						ROLLBACK TRAN
-						
-						RETURN;
-					END
+				DELETE FROM t_legal 
+				WHERE 
+					id = @ID
 			END 
 
 			COMMIT TRAN

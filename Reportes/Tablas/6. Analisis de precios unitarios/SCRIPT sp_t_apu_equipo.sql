@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------------------------------------------------------------------------------
--- sp_t_perfil
+-- sp_t_apu_equipo
 IF OBJECT_ID('dbo.sp_t_apu_equipo') IS NOT NULL
 BEGIN
     DROP PROCEDURE dbo.sp_t_apu_equipo
@@ -35,7 +35,7 @@ AS
 
 	SET @operacion = UPPER(@operacion);
 	
-	IF @operacion = 'C1'
+	IF @operacion = 'C1'					--> Seleccion de tabla completa o por ID				
 	BEGIN
 	
 		SELECT 
@@ -46,7 +46,59 @@ AS
 			rendimiento
 		FROM
 			t_apu_equipo
+		WHERE
+			id = 
+				CASE 
+					WHEN ISNULL (@id, '') = '' THEN id 
+					ELSE @id
+				END
+
+	END ELSE	
+
+	IF @operacion = 'C2'					--> Consulta de equipos en APU
+	BEGIN
 	
+		DECLARE @T_REPORTE_EQUIPO TABLE 
+		(
+			apu			VARCHAR(5)		NOT NULL,
+			equipo		VARCHAR (200)	NOT NULL,
+			unidad		VARCHAR (30)	NOT NULL,
+			cantidad	NUMERIC (5, 2)	NOT NULL,
+			tarifa_dia	NUMERIC (18, 2)	NULL,
+			rendimiento	NUMERIC (5, 2)	NOT NULL,
+			valor		NUMERIC (18, 2)	NOT NULL,
+			total		NUMERIC (18, 2)	NULL
+		)
+
+		INSERT @T_REPORTE_EQUIPO (
+				apu,
+				equipo,
+				unidad,
+				cantidad,
+				tarifa_dia,
+				rendimiento,
+				valor)
+		SELECT	a.codigo AS 'apu',
+				p.nombre AS 'equipo',
+				u.nombre AS 'unidad',
+				ae.cantidad,
+				p.valor AS 'tarifa_dia',
+				ae.rendimiento,
+				(p.valor * ae.rendimiento) AS valor
+		FROM t_apu_equipo ae
+				LEFT JOIN t_producto p ON ae.id_productos = p.id
+				LEFT JOIN t_unidad u ON p.id_unidad = u.id
+				LEFT JOIN t_apu a ON ae.id_apu = a.ID
+		ORDER BY a.codigo DESC
+
+		UPDATE @T_REPORTE_EQUIPO
+		SET
+			total	=	dbo.TotalEquipo(apu)
+		FROM
+			@T_REPORTE_EQUIPO RE
+		WHERE
+			total	IS NULL
+
 	END ELSE	
 
 	IF @operacion = 'B' OR @operacion = 'A'
@@ -67,18 +119,9 @@ AS
 			
 			IF @operacion = 'B'
 			BEGIN
-				IF NOT EXISTS(
-					SELECT 1 FROM t_apu_equipo WHERE id = @id 
-				)				
-					DELETE FROM t_apu_equipo 
-					WHERE 
-						id = @ID
-				ELSE
-					BEGIN
-						ROLLBACK TRAN
-						
-						RETURN;
-					END
+				DELETE FROM t_apu_equipo 
+				WHERE 
+					id = @ID
 			END 
 
 			COMMIT TRAN

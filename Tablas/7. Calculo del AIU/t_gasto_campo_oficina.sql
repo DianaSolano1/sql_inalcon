@@ -1,11 +1,11 @@
 USE prestamos
 GO
 
-IF OBJECT_ID ('dbo.t_gastos_campos_oficinas') IS NOT NULL
-	DROP TABLE dbo.t_gastos_campos_oficinas
+IF OBJECT_ID ('dbo.t_gasto_campo_oficina') IS NOT NULL
+	DROP TABLE dbo.t_gasto_campo_oficina
 GO
 
-CREATE TABLE dbo.t_gastos_campos_oficinas
+CREATE TABLE dbo.t_gasto_campo_oficina
 	(
 	id				INT IDENTITY PRIMARY KEY NOT NULL,
 	id_AIU			INT NOT NULL,

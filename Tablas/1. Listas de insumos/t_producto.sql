@@ -1,11 +1,11 @@
 USE prestamos
 GO
 
-IF OBJECT_ID ('dbo.t_productos') IS NOT NULL
-	DROP TABLE dbo.t_productos
+IF OBJECT_ID ('dbo.t_producto') IS NOT NULL
+	DROP TABLE dbo.t_producto
 GO
 
-CREATE TABLE dbo.t_productos
+CREATE TABLE dbo.t_producto
 	(
 	id				INT IDENTITY PRIMARY KEY NOT NULL,
 	id_unidad		INT NOT NULL,

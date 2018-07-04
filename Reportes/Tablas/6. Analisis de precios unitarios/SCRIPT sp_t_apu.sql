@@ -37,7 +37,7 @@ AS
 
 	SET @operacion = UPPER(@operacion);
 	
-	IF @operacion = 'C1'
+	IF @operacion = 'C1'					--> Seleccion de tabla completa o por ID
 	BEGIN
 	
 		SELECT 
@@ -50,8 +50,58 @@ AS
 			sn_activa
 		FROM
 			t_apu
-	
-	END ELSE	
+		WHERE
+			id = 
+				CASE 
+					WHEN ISNULL (@id, '') = '' THEN id 
+					ELSE @id
+				END
+
+	END ELSE
+
+	IF @operacion = 'C2'					--> Consulta de APU principal
+	BEGIN
+		DECLARE @T_INICIAL_APU TABLE 
+		(
+			apu					VARCHAR(5)		NOT NULL,
+			descripcion			VARCHAR(50)		NOT NULL,
+			unidad				VARCHAR (30)	NOT NULL,
+			factor_hm			NUMERIC (6, 3)	NOT NULL,
+			factor_desperdicio	NUMERIC (6, 3)	NOT NULL,
+			costos_directos		NUMERIC (18, 2)	NULL	
+		)
+		INSERT @T_INICIAL_APU (
+				apu,
+				descripcion,
+				unidad,
+				factor_hm,
+				factor_desperdicio)
+		SELECT	a.codigo AS 'apu',
+				a.nombre AS 'descripcion',
+				u.nombre AS 'unidad',
+				a.factor_hm,
+				a.factor_desperdicio
+		FROM t_apu a
+				LEFT JOIN t_unidad u ON a.id_unidad = u.id
+		ORDER BY a.codigo DESC
+
+		UPDATE @T_INICIAL_APU
+		SET
+			costos_directos	=	(
+				dbo.TotalEquipo(a.codigo)				+
+				dbo.TotalMaterial(a.codigo)				+
+				dbo.TotalTransporteMaterial(a.codigo)	+
+				dbo.TotalManoObra(a.codigo)
+			)
+		FROM
+			@T_INICIAL_APU APU
+			LEFT JOIN t_apu a ON a.codigo = apu.apu
+			LEFT JOIN t_apu_equipo ae ON ae.id_apu = a.ID
+			LEFT JOIN t_producto p ON ae.id_productos = p.id
+		WHERE
+			costos_directos	IS NULL
+
+	END ELSE
 
 	IF @operacion = 'B' OR @operacion = 'A'
 	BEGIN
@@ -73,18 +123,9 @@ AS
 			
 			IF @operacion = 'B'
 			BEGIN
-				IF NOT EXISTS(
-					SELECT 1 FROM t_apu WHERE id = @id 
-				)				
-					DELETE FROM t_apu 
-					WHERE 
-						id = @ID
-				ELSE
-					BEGIN
-						ROLLBACK TRAN
-						
-						RETURN;
-					END
+				DELETE FROM t_apu 
+				WHERE 
+					id = @ID
 			END 
 
 			COMMIT TRAN

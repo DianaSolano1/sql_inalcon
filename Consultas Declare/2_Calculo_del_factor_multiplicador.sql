@@ -10,8 +10,6 @@
 			porcentaje_item NUMERIC (5, 2) NULL,
 			factor_multiplicador NUMERIC(5, 2) NULL
 		)
-		----------------------------------------------------------------------------------------------------
-		-- GUARDA LOS DATOS PARA LA TABLA
 		INSERT @T_CALCULO_FM (
 						item_capitulo, 
 						capitulo, 
@@ -34,19 +32,7 @@
 		FROM t_factor_base b
 			LEFT JOIN t_factor_subitem s ON b.ID = s.id_factor_base
 			LEFT JOIN t_factor_detalle d ON s.ID = d.id_factor_subitem
-		GROUP BY
-			b.item			,
-			b.nombre		,
-			b.porcentaje	,
-			s.item			,
-			s.nombre		,
-			s.porcentaje	,
-			d.nombre		,
-			d.porcentaje
-		HAVING COUNT(*) >= 1
 		ORDER BY b.item DESC
-
-		--SELECT * FROM @T_CALCULO_FM
 
 		UPDATE @T_CALCULO_FM
 		SET

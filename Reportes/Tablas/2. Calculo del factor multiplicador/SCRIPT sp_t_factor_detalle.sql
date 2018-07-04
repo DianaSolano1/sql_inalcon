@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------------------------------------------------------------------------------
--- sp_t_perfil
+-- sp_t_factor_detalle
 IF OBJECT_ID('dbo.sp_t_factor_detalle') IS NOT NULL
 BEGIN
     DROP PROCEDURE dbo.sp_t_factor_detalle
@@ -44,7 +44,13 @@ AS
 			porcentaje		
 		FROM
 			t_factor_detalle
-	
+		WHERE
+			id = 
+				CASE 
+					WHEN ISNULL (@id, '') = '' THEN id 
+					ELSE @id
+				END	
+
 	END ELSE	
 
 	IF @operacion = 'B' OR @operacion = 'A'
@@ -64,18 +70,9 @@ AS
 			
 			IF @operacion = 'B'
 			BEGIN
-				IF NOT EXISTS(
-					SELECT 1 FROM t_factor_detalle WHERE id = @id 
-				)				
-					DELETE FROM t_factor_detalle 
-					WHERE 
-						id = @ID
-				ELSE
-					BEGIN
-						ROLLBACK TRAN
-						
-						RETURN;
-					END
+				DELETE FROM t_factor_detalle 
+				WHERE 
+					id = @ID
 			END 
 
 			COMMIT TRAN

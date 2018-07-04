@@ -35,7 +35,7 @@ AS
 
 	SET @operacion = UPPER(@operacion);
 	
-	IF @operacion = 'C1'
+	IF @operacion = 'C1'							--> Seleccion de tabla completa o por ID
 	BEGIN
 	
 		SELECT 
@@ -46,7 +46,61 @@ AS
 			tarifa
 		FROM
 			t_apu_transporte_material
+		WHERE
+			id = 
+				CASE 
+					WHEN ISNULL (@id, '') = '' THEN id 
+					ELSE @id
+				END
 	
+	END ELSE
+	
+	IF @operacion = 'C2'							--> Consulta de transporte de materiales en APU
+	BEGIN
+	
+		DECLARE @T_REPORTE_TRANSPORTE_MATERIALES TABLE 
+		(
+			apu						VARCHAR(5)		NOT NULL,
+			transporte_materiales	VARCHAR (200)	NOT NULL,
+			vol_peso_cant			VARCHAR (30)	NOT NULL,
+			distancia				NUMERIC (10, 2)	NOT NULL,
+			m3_km					NUMERIC (18, 2)	NOT NULL,
+			tarifa					NUMERIC (10, 2)	NOT NULL,
+			valor_unitario			NUMERIC (20, 2)	NOT NULL,
+			total					NUMERIC (18, 2)	NULL
+		)
+		
+		INSERT @T_REPORTE_TRANSPORTE_MATERIALES (
+				apu,
+				transporte_materiales,
+				vol_peso_cant,
+				distancia,
+				m3_km,
+				tarifa,
+				valor_unitario)
+		SELECT	
+			a.codigo AS 'apu',
+			p.nombre AS 'transporte_material',
+			u.nombre AS 'vol_peso_cant',
+			atm.distancia,
+			p.valor AS 'm3_km',
+			atm.tarifa,
+			(p.valor * atm.tarifa) AS 'valor_unitario'
+		FROM 
+			t_apu_transporte_material atm
+			LEFT JOIN t_productos p ON atm.id_productos = p.id
+			LEFT JOIN t_unidades u ON p.id_unidad = u.id
+			LEFT JOIN t_apu a ON atm.id_apu = a.ID
+		ORDER BY a.codigo DESC
+
+		UPDATE @T_REPORTE_TRANSPORTE_MATERIALES
+		SET
+			total	=	dbo.TotalTransporteMaterial(apu)
+		FROM
+			@T_REPORTE_TRANSPORTE_MATERIALES RTM
+		WHERE
+			total	IS NULL
+
 	END ELSE	
 
 	IF @operacion = 'B' OR @operacion = 'A'
@@ -67,18 +121,9 @@ AS
 			
 			IF @operacion = 'B'
 			BEGIN
-				IF NOT EXISTS(
-					SELECT 1 FROM t_apu_transporte_material WHERE id = @id 
-				)				
-					DELETE FROM t_apu_transporte_material 
-					WHERE 
-						id = @ID
-				ELSE
-					BEGIN
-						ROLLBACK TRAN
-						
-						RETURN;
-					END
+				DELETE FROM t_apu_transporte_material 
+				WHERE 
+					id = @ID
 			END 
 
 			COMMIT TRAN

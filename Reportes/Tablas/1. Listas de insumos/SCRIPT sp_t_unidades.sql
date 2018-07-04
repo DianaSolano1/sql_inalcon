@@ -1,12 +1,12 @@
 -------------------------------------------------------------------------------------------------------------------------------------------------------
--- sp_t_perfil
-IF OBJECT_ID('dbo.sp_t_unidades') IS NOT NULL
+-- sp_t_unidad
+IF OBJECT_ID('dbo.sp_t_unidad') IS NOT NULL
 BEGIN
-    DROP PROCEDURE dbo.sp_t_unidades
-    IF OBJECT_ID('dbo.sp_t_unidades') IS NOT NULL
-        PRINT '<<< FAILED DROPPING PROCEDURE dbo.sp_t_unidades >>>'
+    DROP PROCEDURE dbo.sp_t_unidad
+    IF OBJECT_ID('dbo.sp_t_unidad') IS NOT NULL
+        PRINT '<<< FAILED DROPPING PROCEDURE dbo.sp_t_unidad >>>'
     ELSE
-        PRINT '<<< DROPPED PROCEDURE dbo.sp_t_unidades >>>'
+        PRINT '<<< DROPPED PROCEDURE dbo.sp_t_unidad >>>'
 END
 GO
 
@@ -16,7 +16,7 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-CREATE PROCEDURE sp_t_unidades
+CREATE PROCEDURE sp_t_unidad
 (
 	@operacion		VARCHAR(5),
 
@@ -39,7 +39,13 @@ AS
 			id 		,
 			nombre	
 		FROM
-			t_unidades
+			t_unidad
+		WHERE
+			id = 
+				CASE 
+					WHEN ISNULL (@id, '') = '' THEN id 					
+					ELSE @id
+				END
 	
 	END ELSE	
 
@@ -52,24 +58,15 @@ AS
 
 				@operacion
 			FROM
-				t_unidades 
+				t_unidad 
 			WHERE 
 				id = @id
 			
 			IF @operacion = 'B'
 			BEGIN
-				IF NOT EXISTS(
-					SELECT 1 FROM t_unidades WHERE id = @id 
-				)				
-					DELETE FROM t_unidades 
-					WHERE 
-						id = @ID
-				ELSE
-					BEGIN
-						ROLLBACK TRAN
-						
-						RETURN;
-					END
+				DELETE FROM t_unidad 
+				WHERE 
+					id = @ID
 			END 
 
 			COMMIT TRAN
@@ -77,16 +74,16 @@ AS
 	
 	IF @OPERACION = 'I' OR @operacion = 'A'
 	BEGIN
-		IF EXISTS (SELECT 1 FROM t_unidades WHERE id = @id )		
+		IF EXISTS (SELECT 1 FROM t_unidad WHERE id = @id )		
 		BEGIN	
 				
-			UPDATE t_unidades 
+			UPDATE t_unidad 
 				SET nombre	= ISNULL (@nombre, nombre)
 			WHERE 
 				id = @id
 		END ELSE
 		BEGIN
-			INSERT INTO t_unidades (
+			INSERT INTO t_unidad (
 				nombre		
 			)
 			VALUES(
@@ -96,8 +93,8 @@ AS
 	END
 GO
 
-IF OBJECT_ID('dbo.sp_t_unidades') IS NOT NULL
-    PRINT '<<< CREATED PROCEDURE dbo.sp_t_unidades >>>'
+IF OBJECT_ID('dbo.sp_t_unidad') IS NOT NULL
+    PRINT '<<< CREATED PROCEDURE dbo.sp_t_unidad >>>'
 ELSE
-    PRINT '<<< FAILED CREATING PROCEDURE dbo.sp_t_unidades >>>'
+    PRINT '<<< FAILED CREATING PROCEDURE dbo.sp_t_unidad >>>'
 GO

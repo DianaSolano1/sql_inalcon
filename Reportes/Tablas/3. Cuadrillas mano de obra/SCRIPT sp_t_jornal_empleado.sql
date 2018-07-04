@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------------------------------------------------------------------------------
--- sp_t_perfil
+-- sp_t_jornal_empleado
 IF OBJECT_ID('dbo.sp_t_jornal_empleado') IS NOT NULL
 BEGIN
     DROP PROCEDURE dbo.sp_t_jornal_empleado
@@ -36,7 +36,7 @@ AS
 
 	SET @operacion = UPPER(@operacion);
 	
-	IF @operacion = 'C1'
+	IF @operacion = 'C1'					--> Seleccion de tabla completa o por ID
 	BEGIN
 	
 		SELECT 
@@ -48,8 +48,29 @@ AS
 			porcentaje
 		FROM
 			t_jornal_empleado
-	
+		WHERE
+			id = 
+				CASE 
+					WHEN ISNULL (@id, '') = '' THEN id 
+					ELSE @id
+				END
+
 	END ELSE	
+		
+	IF @operacion = 'C2'					--> Consulta de jornales
+	BEGIN
+		SELECT	
+			je.descripcion,
+			je.porcentaje,
+			cl.valor AS 'salario_minimo',
+			cd.dias_labor AS 'dias_laborales',
+			((1 + (je.porcentaje / 100)) * (cl.valor / cd.dias_labor)) AS 'valor_jornal',
+			je.sn_ayudante AS 'cargo'
+		FROM 
+			t_jornal_empleado je
+			LEFT JOIN t_cuadrilla cd ON je.id_cuadrilla = cd.id
+			LEFT JOIN t_legal cl ON cd.id_salrio_minimo = cl.id;
+	END ELSE
 
 	IF @operacion = 'B' OR @operacion = 'A'
 	BEGIN
@@ -70,18 +91,9 @@ AS
 			
 			IF @operacion = 'B'
 			BEGIN
-				IF NOT EXISTS(
-					SELECT 1 FROM t_jornal_empleado WHERE id = @id 
-				)				
-					DELETE FROM t_jornal_empleado 
-					WHERE 
-						id = @ID
-				ELSE
-					BEGIN
-						ROLLBACK TRAN
-						
-						RETURN;
-					END
+				DELETE FROM t_jornal_empleado 
+				WHERE 
+					id = @ID
 			END 
 
 			COMMIT TRAN

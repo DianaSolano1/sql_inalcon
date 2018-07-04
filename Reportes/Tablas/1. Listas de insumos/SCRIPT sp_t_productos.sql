@@ -1,12 +1,12 @@
 -------------------------------------------------------------------------------------------------------------------------------------------------------
--- sp_t_perfil
-IF OBJECT_ID('dbo.sp_t_productos') IS NOT NULL
+-- sp_t_producto
+IF OBJECT_ID('dbo.sp_t_producto') IS NOT NULL
 BEGIN
-    DROP PROCEDURE dbo.sp_t_productos
-    IF OBJECT_ID('dbo.sp_t_productos') IS NOT NULL
-        PRINT '<<< FAILED DROPPING PROCEDURE dbo.sp_t_productos >>>'
+    DROP PROCEDURE dbo.sp_t_producto
+    IF OBJECT_ID('dbo.sp_t_producto') IS NOT NULL
+        PRINT '<<< FAILED DROPPING PROCEDURE dbo.sp_t_producto >>>'
     ELSE
-        PRINT '<<< DROPPED PROCEDURE dbo.sp_t_productos >>>'
+        PRINT '<<< DROPPED PROCEDURE dbo.sp_t_producto >>>'
 END
 GO
 
@@ -16,7 +16,7 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-CREATE PROCEDURE sp_t_productos
+CREATE PROCEDURE sp_t_producto
 (
 	@operacion		VARCHAR(5),
 
@@ -37,7 +37,7 @@ AS
 
 	SET @operacion = UPPER(@operacion);
 	
-	IF @operacion = 'C1'
+	IF @operacion = 'C1'							--> Seleccion de tabla completa o por ID
 	BEGIN
 	
 		SELECT 
@@ -49,9 +49,31 @@ AS
 			valor			,
 			sn_iva			
 		FROM
-			t_productos
+			t_producto
+		WHERE
+			id = 
+				CASE 
+					WHEN ISNULL (@id, '') = '' THEN id 
+					ELSE @id
+				END
 	
 	END ELSE	
+	IF @operacion = 'C2'							--> Reporte de insumos
+	BEGIN
+		SELECT  
+			p.nombre AS 'descripcion',
+			u.nombre AS 'nombre_unidad',
+			p.valor AS 'valor_directo',
+			p.sn_iva,
+			dbo.fc_detectarIva(p.id) AS 'valor_total',
+			pc.nombre AS 'nombre_procedencia'
+		FROM	
+			t_producto p
+			LEFT JOIN t_unidad u ON p.id_unidad = u.id
+			LEFT JOIN t_procedencia pc ON p.id_procedencia = pc.id
+		ORDER BY p.nombre 
+		
+	END ELSE
 
 	IF @operacion = 'B' OR @operacion = 'A'
 	BEGIN
@@ -67,16 +89,16 @@ AS
 
 				@operacion
 			FROM
-				t_productos 
+				t_producto 
 			WHERE 
 				id = @id
 			
 			IF @operacion = 'B'
 			BEGIN
 				IF NOT EXISTS(
-					SELECT 1 FROM t_productos WHERE id = @id 
+					SELECT 1 FROM t_producto WHERE id = @id 
 				)				
-					DELETE FROM t_productos 
+					DELETE FROM t_producto 
 					WHERE 
 						id = @ID
 				ELSE
@@ -90,12 +112,12 @@ AS
 			COMMIT TRAN
 	END 
 	
-	IF @OPERACION = 'I' OR @operacion = 'A'
+	IF @operacion = 'I' OR @operacion = 'A'
 	BEGIN
-		IF EXISTS (SELECT 1 FROM t_productos WHERE id = @id )		
+		IF EXISTS (SELECT 1 FROM t_producto WHERE id = @id )		
 		BEGIN	
 				
-			UPDATE t_productos 
+			UPDATE t_producto 
 				SET id_unidad		= ISNULL (@id_unidad, id_unidad),
 					id_procedencia	= ISNULL (@id_procedencia, id_procedencia),
 					id_iva			= ISNULL (@id_iva, id_iva),
@@ -106,7 +128,7 @@ AS
 				id = @id
 		END ELSE
 		BEGIN
-			INSERT INTO t_productos (
+			INSERT INTO t_producto (
 				id_unidad		,
 				id_procedencia	,
 				id_iva			,
@@ -126,8 +148,8 @@ AS
 	END
 GO
 
-IF OBJECT_ID('dbo.sp_t_productos') IS NOT NULL
-    PRINT '<<< CREATED PROCEDURE dbo.sp_t_productos >>>'
+IF OBJECT_ID('dbo.sp_t_producto') IS NOT NULL
+    PRINT '<<< CREATED PROCEDURE dbo.sp_t_producto >>>'
 ELSE
-    PRINT '<<< FAILED CREATING PROCEDURE dbo.sp_t_productos >>>'
+    PRINT '<<< FAILED CREATING PROCEDURE dbo.sp_t_producto >>>'
 GO

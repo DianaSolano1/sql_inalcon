@@ -33,7 +33,7 @@ AS
 
 	SET @operacion = UPPER(@operacion);
 	
-	IF @operacion = 'C1'
+	IF @operacion = 'C1'							--> Seleccion de tabla completa o por ID
 	BEGIN
 	
 		SELECT 
@@ -43,6 +43,12 @@ AS
 			sueldo_basico
 		FROM
 			t_cargo_sueldo
+		WHERE
+			id = 
+				CASE 
+					WHEN ISNULL (@id, '') = '' THEN id 
+					ELSE @id
+				END
 	
 	END ELSE	
 
@@ -63,18 +69,9 @@ AS
 			
 			IF @operacion = 'B'
 			BEGIN
-				IF NOT EXISTS(
-					SELECT 1 FROM t_cargo_sueldo WHERE id = @id 
-				)				
-					DELETE FROM t_cargo_sueldo 
-					WHERE 
-						id = @ID
-				ELSE
-					BEGIN
-						ROLLBACK TRAN
-						
-						RETURN;
-					END
+				DELETE FROM t_cargo_sueldo 
+				WHERE 
+					id = @ID
 			END 
 
 			COMMIT TRAN

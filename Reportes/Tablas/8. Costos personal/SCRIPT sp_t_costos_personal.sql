@@ -35,7 +35,7 @@ AS
 
 	SET @operacion = UPPER(@operacion);
 	
-	IF @operacion = 'C1'
+	IF @operacion = 'C1'							--> Seleccion de tabla completa o por ID
 	BEGIN
 	
 		SELECT 
@@ -47,8 +47,35 @@ AS
 			tiempo_ejecucion
 		FROM
 			t_costos_personal
+		WHERE
+			id = 
+				CASE 
+					WHEN ISNULL (@id, '') = '' THEN id 
+					ELSE @id
+				END
 	
 	END ELSE	
+
+	IF @operacion = 'C2'							--> Consulta costos personal
+	BEGIN
+	
+		SELECT	
+			rc.nombre AS 'rol',
+			cs.nombre AS 'cargo',
+			cp.cantidad,
+			ex.nombre AS 'experiencia_general_específica',
+			cp.dedicacion,
+			cp.tiempo_ejecucion,
+			cs.sueldo_basico,
+			dbo.CostoPersonalParcial(cs.ID) AS 'costo_parcial'
+		FROM 
+			t_costos_personal cp
+			LEFT JOIN t_experiencia ex ON cp.id_experiencia = ex.ID
+			LEFT JOIN t_cargo_sueldo cs ON cp.id_experiencia = cs.ID
+			LEFT JOIN t_rol_cargo rc ON cs.id_rol = rc.ID
+		ORDER BY rc.nombre 
+	
+	END ELSE
 
 	IF @operacion = 'B' OR @operacion = 'A'
 	BEGIN
@@ -69,18 +96,9 @@ AS
 			
 			IF @operacion = 'B'
 			BEGIN
-				IF NOT EXISTS(
-					SELECT 1 FROM t_costos_personal WHERE id = @id 
-				)				
-					DELETE FROM t_costos_personal 
-					WHERE 
-						id = @ID
-				ELSE
-					BEGIN
-						ROLLBACK TRAN
-						
-						RETURN;
-					END
+				DELETE FROM t_costos_personal 
+				WHERE 
+					id = @ID
 			END 
 
 			COMMIT TRAN

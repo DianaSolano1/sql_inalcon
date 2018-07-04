@@ -46,8 +46,17 @@ AS
 			valor_contrato
 		FROM
 			t_cliente
-	
-	END ELSE	
+		WHERE
+			id = 
+				CASE WHEN ISNULL (@id, '') = '' THEN id 
+				ELSE @id
+				END
+			
+	--END ELSE
+	--IF @operacion = 'C1'
+	--BEGIN
+		
+	END	
 
 	IF @operacion = 'B' OR @operacion = 'A'
 	BEGIN
@@ -66,19 +75,10 @@ AS
 				id = @id
 			
 			IF @operacion = 'B'
-			BEGIN
-				IF NOT EXISTS(
-					SELECT 1 FROM t_cliente WHERE id = @id 
-				)				
-					DELETE FROM t_cliente 
-					WHERE 
-						id = @ID
-				ELSE
-					BEGIN
-						ROLLBACK TRAN
-						
-						RETURN;
-					END
+			BEGIN			
+				DELETE FROM t_cliente 
+				WHERE 
+					id = @ID
 			END 
 
 			COMMIT TRAN

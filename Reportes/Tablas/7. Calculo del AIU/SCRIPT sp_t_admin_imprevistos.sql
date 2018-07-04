@@ -1,12 +1,12 @@
 ---------------------------------------------------------------------------
--- sp_t_perfil
-IF OBJECT_ID('dbo.sp_t_admin_imprevistos') IS NOT NULL
+-- sp_t_admin_imprevisto
+IF OBJECT_ID('dbo.sp_t_admin_imprevisto') IS NOT NULL
 BEGIN
-    DROP PROCEDURE dbo.sp_t_admin_imprevistos
-    IF OBJECT_ID('dbo.sp_t_admin_imprevistos') IS NOT NULL
-        PRINT '<<< FAILED DROPPING PROCEDURE dbo.sp_t_admin_imprevistos >>>'
+    DROP PROCEDURE dbo.sp_t_admin_imprevisto
+    IF OBJECT_ID('dbo.sp_t_admin_imprevisto') IS NOT NULL
+        PRINT '<<< FAILED DROPPING PROCEDURE dbo.sp_t_admin_imprevisto >>>'
     ELSE
-        PRINT '<<< DROPPED PROCEDURE dbo.sp_t_admin_imprevistos >>>'
+        PRINT '<<< DROPPED PROCEDURE dbo.sp_t_admin_imprevisto >>>'
 END
 GO
 
@@ -16,7 +16,7 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-CREATE PROCEDURE sp_t_admin_imprevistos
+CREATE PROCEDURE sp_t_admin_imprevisto
 (
 	@operacion		VARCHAR(5),
 
@@ -34,7 +34,7 @@ AS
 
 	SET @operacion = UPPER(@operacion);
 	
-	IF @operacion = 'C1'
+	IF @operacion = 'C1'							--> Seleccion de tabla completa o por ID
 	BEGIN
 	
 		SELECT 
@@ -45,6 +45,74 @@ AS
 			porcentaje
 		FROM
 			t_admin_imprevistos
+		WHERE
+			id = 
+				CASE 
+					WHEN ISNULL (@id, '') = '' THEN id 
+					ELSE @id
+				END
+	
+	END ELSE	
+
+	IF @operacion = 'C2'							--> Consulta ADMINISTRACION IMPREVISTOS Y UTILIDADES
+	BEGIN
+	
+		DECLARE @T_ADMIN_IMPREVISTOS_UTIL TABLE 
+		(
+			id								INT				NOT NULL,
+			admision_imprevistos_utilidades	VARCHAR (200)	NOT NULL,
+			valores							NUMERIC (18, 2)	NULL,
+			porcentaje						NUMERIC (6, 3)	NULL,
+			valor_total						NUMERIC(18, 2)	NULL,
+			porcentaje_total				NUMERIC(5, 2)	NULL
+		)
+
+		INSERT @T_ADMIN_IMPREVISTOS_UTIL (
+				id,
+				admision_imprevistos_utilidades,
+				valores,
+				porcentaje
+			)
+		SELECT	ai.id,
+				ai.descripcion AS 'admision_imprevistos_utilidades',
+				(c.valor_contrato * (ai.porcentaje / 100)) AS 'valores',
+				ai.porcentaje AS 'porcentaje'
+		FROM t_admin_imprevistos ai
+				LEFT JOIN t_AIU aiu ON ai.id_AIU = aiu.id
+				LEFT JOIN t_cliente c ON aiu.id_cliente = c.ID
+		ORDER BY ai.id DESC
+
+		UPDATE @T_ADMIN_IMPREVISTOS_UTIL
+		SET
+			valores	=	(dbo.ValorAdmin())
+		FROM
+			@T_ADMIN_IMPREVISTOS_UTIL ADM
+		WHERE
+			valores	IS NULL
+
+		UPDATE @T_ADMIN_IMPREVISTOS_UTIL
+		SET
+			porcentaje	=	(dbo.PorcentajeAdmin())
+		FROM
+			@T_ADMIN_IMPREVISTOS_UTIL ADM
+		WHERE
+			porcentaje	IS NULL
+
+		UPDATE @T_ADMIN_IMPREVISTOS_UTIL
+		SET
+			valor_total			= (dbo.TotalAIUValor())
+		FROM
+			@T_ADMIN_IMPREVISTOS_UTIL ADM
+		WHERE
+			valor_total	IS NULL
+
+		UPDATE @T_ADMIN_IMPREVISTOS_UTIL
+		SET
+			porcentaje_total	= (dbo.TotalAIUPorcentaje())
+		FROM
+			@T_ADMIN_IMPREVISTOS_UTIL ADM
+		WHERE
+			porcentaje_total	IS NULL
 	
 	END ELSE	
 
@@ -66,18 +134,9 @@ AS
 			
 			IF @operacion = 'B'
 			BEGIN
-				IF NOT EXISTS(
-					SELECT 1 FROM t_admin_imprevistos WHERE id = @id 
-				)				
-					DELETE FROM t_admin_imprevistos 
-					WHERE 
-						id = @ID
-				ELSE
-					BEGIN
-						ROLLBACK TRAN
-						
-						RETURN;
-					END
+				DELETE FROM t_admin_imprevistos 
+				WHERE 
+					id = @ID
 			END 
 
 			COMMIT TRAN
@@ -113,8 +172,8 @@ AS
 	END
 GO
 
-IF OBJECT_ID('dbo.sp_t_admin_imprevistos') IS NOT NULL
-    PRINT '<<< CREATED PROCEDURE dbo.sp_t_admin_imprevistos >>>'
+IF OBJECT_ID('dbo.sp_t_admin_imprevisto') IS NOT NULL
+    PRINT '<<< CREATED PROCEDURE dbo.sp_t_admin_imprevisto >>>'
 ELSE
-    PRINT '<<< FAILED CREATING PROCEDURE dbo.sp_t_admin_imprevistos >>>'
+    PRINT '<<< FAILED CREATING PROCEDURE dbo.sp_t_admin_imprevisto >>>'
 GO

@@ -1,12 +1,12 @@
 ---------------------------------------------------------------------------
--- sp_t_perfil
-IF OBJECT_ID('dbo.sp_t_costos_directos') IS NOT NULL
+-- sp_t_costo_directo
+IF OBJECT_ID('dbo.sp_t_costo_directo') IS NOT NULL
 BEGIN
-    DROP PROCEDURE dbo.sp_t_costos_directos
-    IF OBJECT_ID('dbo.sp_t_costos_directos') IS NOT NULL
-        PRINT '<<< FAILED DROPPING PROCEDURE dbo.sp_t_costos_directos >>>'
+    DROP PROCEDURE dbo.sp_t_costo_directo
+    IF OBJECT_ID('dbo.sp_t_costo_directo') IS NOT NULL
+        PRINT '<<< FAILED DROPPING PROCEDURE dbo.sp_t_costo_directo >>>'
     ELSE
-        PRINT '<<< DROPPED PROCEDURE dbo.sp_t_costos_directos >>>'
+        PRINT '<<< DROPPED PROCEDURE dbo.sp_t_costo_directo >>>'
 END
 GO
 
@@ -16,7 +16,7 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-CREATE PROCEDURE sp_t_costos_directos
+CREATE PROCEDURE sp_t_costo_directo
 (
 	@operacion	VARCHAR(5),
 
@@ -36,7 +36,7 @@ AS
 
 	SET @operacion = UPPER(@operacion);
 	
-	IF @operacion = 'C1'
+	IF @operacion = 'C1'							--> Seleccion de tabla completa o por ID
 	BEGIN
 	
 		SELECT 
@@ -49,6 +49,29 @@ AS
 			tarifa
 		FROM
 			t_costos_directos
+		WHERE
+			id = 
+				CASE 
+					WHEN ISNULL (@id, '') = '' THEN id 
+					ELSE @id
+				END
+	
+	END ELSE
+	
+	IF @operacion = 'C2'							--> Consulta de otros costos directos
+	BEGIN
+	
+		SELECT	cd.nombre AS 'descripcion',
+				cd.cantidad,
+				u.nombre AS 'unidad',
+				cd.dedicacion,
+				cd.tiempo_ejecucion,
+				cd.tarifa,
+				dbo.CostoDirectoParcial(cd.id) AS 'costo_parcial',
+				dbo.CostoDirectoParcialTotal()
+		FROM t_costos_directos cd
+				LEFT JOIN t_unidades u ON cd.id_unidad = u.id
+		ORDER BY cd.nombre
 	
 	END ELSE	
 
@@ -72,18 +95,9 @@ AS
 			
 			IF @operacion = 'B'
 			BEGIN
-				IF NOT EXISTS(
-					SELECT 1 FROM t_costos_directos WHERE id = @id 
-				)				
-					DELETE FROM t_costos_directos 
-					WHERE 
-						id = @ID
-				ELSE
-					BEGIN
-						ROLLBACK TRAN
-						
-						RETURN;
-					END
+				DELETE FROM t_costos_directos 
+				WHERE 
+					id = @ID
 			END 
 
 			COMMIT TRAN
@@ -126,8 +140,8 @@ AS
 	END
 GO
 
-IF OBJECT_ID('dbo.sp_t_costos_directos') IS NOT NULL
-    PRINT '<<< CREATED PROCEDURE dbo.sp_t_costos_directos >>>'
+IF OBJECT_ID('dbo.sp_t_costo_directo') IS NOT NULL
+    PRINT '<<< CREATED PROCEDURE dbo.sp_t_costo_directo >>>'
 ELSE
-    PRINT '<<< FAILED CREATING PROCEDURE dbo.sp_t_costos_directos >>>'
+    PRINT '<<< FAILED CREATING PROCEDURE dbo.sp_t_costo_directo >>>'
 GO

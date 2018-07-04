@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------
--- sp_t_perfil
+-- sp_t_subpresupuesto
 IF OBJECT_ID('dbo.sp_t_subpresupuesto') IS NOT NULL
 BEGIN
     DROP PROCEDURE dbo.sp_t_subpresupuesto
@@ -35,7 +35,7 @@ AS
 
 	SET @operacion = UPPER(@operacion);
 	
-	IF @operacion = 'C1'
+	IF @operacion = 'C1'							--> Seleccion de tabla completa o por ID
 	BEGIN
 	
 		SELECT 
@@ -47,6 +47,33 @@ AS
 			cantidad
 		FROM
 			t_subpresupuesto
+		WHERE
+			id = 
+				CASE 
+					WHEN ISNULL (@id, '') = '' THEN id 
+					ELSE @id
+				END
+	
+	END ELSE
+
+	IF @operacion = 'C2'							--> Consulta el subpresupuesto
+	BEGIN
+	
+		SELECT	
+			pg.item,
+			s.item,
+			apu.codigo,
+			apu.nombre,
+			u.nombre,
+			dbo.TotalApuInicial(apu.codigo),
+			s.cantidad,
+			dbo.ValorTotalSUBAPULleno(apu.codigo,s.item)
+		FROM 
+			t_subpresupuesto s
+			LEFT JOIN t_presupuesto_general pg ON s.id_presupuesto = pg.id
+			LEFT JOIN t_apu apu ON s.id_APU = apu.ID
+			LEFT JOIN t_unidades u ON apu.id_unidad = u.id
+		ORDER BY pg.item
 	
 	END ELSE	
 

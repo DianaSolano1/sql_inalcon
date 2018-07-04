@@ -1,11 +1,11 @@
 USE prestamos
 GO
 
-IF OBJECT_ID ('dbo.t_gastos_personal') IS NOT NULL
-	DROP TABLE dbo.t_gastos_personal
+IF OBJECT_ID ('dbo.t_gasto_personal') IS NOT NULL
+	DROP TABLE dbo.t_gasto_personal
 GO
 
-CREATE TABLE dbo.t_gastos_personal
+CREATE TABLE dbo.t_gasto_personal
 	(
 	id					INT IDENTITY PRIMARY KEY NOT NULL,
 	id_AIU				INT NOT NULL,
