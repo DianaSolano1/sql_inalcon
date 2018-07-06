@@ -41,7 +41,7 @@ AS
 		SELECT 
 			id 				,
 			id_apu			,
-			id_productos	,
+			id_producto		,
 			cantidad		,
 			rendimiento
 		FROM
@@ -86,7 +86,7 @@ AS
 				ae.rendimiento,
 				(p.valor * ae.rendimiento) AS valor
 		FROM t_apu_equipo ae
-				LEFT JOIN t_producto p ON ae.id_productos = p.id
+				LEFT JOIN t_producto p ON ae.id_producto = p.id
 				LEFT JOIN t_unidad u ON p.id_unidad = u.id
 				LEFT JOIN t_apu a ON ae.id_apu = a.ID
 		ORDER BY a.codigo DESC
@@ -99,6 +99,8 @@ AS
 		WHERE
 			total	IS NULL
 
+		SELECT * FROM @T_REPORTE_EQUIPO
+
 	END ELSE	
 
 	IF @operacion = 'B' OR @operacion = 'A'
@@ -107,7 +109,7 @@ AS
 			SELECT 
 				id 				,
 				id_apu			,
-				id_productos	,
+				id_producto		,
 				cantidad		,
 				rendimiento		,
 				
@@ -134,7 +136,7 @@ AS
 				
 			UPDATE t_apu_equipo 
 				SET id_apu			= ISNULL (@id_apu, id_apu),
-					id_productos	= ISNULL (@id_productos, id_productos),
+					id_producto		= ISNULL (@id_productos, id_producto),
 					cantidad		= ISNULL (@cantidad, cantidad),
 					rendimiento		= ISNULL (@rendimiento, rendimiento)
 			WHERE 
@@ -143,7 +145,7 @@ AS
 		BEGIN
 			INSERT INTO t_apu_equipo (
 				id_apu			,
-				id_productos	,
+				id_producto		,
 				cantidad		,
 				rendimiento
 			)

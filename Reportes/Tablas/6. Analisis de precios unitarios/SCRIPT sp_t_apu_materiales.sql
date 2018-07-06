@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------------------------------------------------------------------------------
--- sp_t_perfil
+-- sp_t_apu_materiales
 IF OBJECT_ID('dbo.sp_t_apu_materiales') IS NOT NULL
 BEGIN
     DROP PROCEDURE dbo.sp_t_apu_materiales
@@ -38,12 +38,12 @@ AS
 	BEGIN
 	
 		SELECT 
-			id 				,
-			id_apu			,
-			id_productos	,
+			id 			,
+			id_apu		,
+			id_producto	,
 			cantidad
 		FROM
-			t_apu_materiales
+			t_apu_material
 		WHERE
 			id = 
 				CASE 
@@ -56,7 +56,7 @@ AS
 	IF @operacion = 'C2'							--> Consulta de materiales en APU
 	BEGIN
 	
-	DECLARE @T_REPORTE_MATERIALES TABLE 
+		DECLARE @T_REPORTE_MATERIALES TABLE 
 		(
 			apu					VARCHAR(5)		NOT NULL,
 			materiales			VARCHAR (200)	NOT NULL,
@@ -83,9 +83,9 @@ AS
 			p.valor AS 'valor_unitario',
 			a.factor_desperdicio
 		FROM 
-			t_apu_materiales am
-			LEFT JOIN t_productos p ON am.id_productos = p.id
-			LEFT JOIN t_unidades u ON p.id_unidad = u.id
+			t_apu_material am
+			LEFT JOIN t_producto p ON am.id_producto = p.id
+			LEFT JOIN t_unidad u ON p.id_unidad = u.id
 			LEFT JOIN t_apu a ON am.id_apu = a.ID
 		ORDER BY a.codigo DESC
 
@@ -94,16 +94,18 @@ AS
 			valor	=	dbo.calcularValorMaterial(apu,p.id)
 		FROM
 			@T_REPORTE_MATERIALES RM
-			LEFT JOIN t_productos p ON RM.materiales = p.nombre
+			LEFT JOIN t_producto p ON RM.materiales = p.nombre
 
 		UPDATE @T_REPORTE_MATERIALES
 		SET
 			total	=	dbo.TotalMaterial(apu)
 		FROM
 			@T_REPORTE_MATERIALES RM
-			LEFT JOIN t_productos p ON RM.materiales = p.nombre
+			LEFT JOIN t_producto p ON RM.materiales = p.nombre
 		WHERE
 			total	IS NULL
+
+		SELECT * FROM @T_REPORTE_MATERIALES
 	
 	END ELSE	
 
@@ -111,20 +113,20 @@ AS
 	BEGIN
 		BEGIN TRAN
 			SELECT 
-				id 				,
-				id_apu			,
-				id_productos	,
-				cantidad		,
+				id 			,
+				id_apu		,
+				id_producto	,
+				cantidad	,
 				
 				@operacion
 			FROM
-				t_apu_materiales 
+				t_apu_material 
 			WHERE 
 				id = @id
 			
 			IF @operacion = 'B'
 			BEGIN
-				DELETE FROM t_apu_materiales 
+				DELETE FROM t_apu_material
 				WHERE 
 					id = @ID
 			END 
@@ -134,20 +136,20 @@ AS
 	
 	IF @OPERACION = 'I' OR @operacion = 'A'
 	BEGIN
-		IF EXISTS (SELECT 1 FROM t_apu_materiales WHERE id = @id )		
+		IF EXISTS (SELECT 1 FROM t_apu_material WHERE id = @id )		
 		BEGIN	
 				
-			UPDATE t_apu_materiales 
-				SET id_apu			= ISNULL (@id_apu, id_apu),
-					id_productos	= ISNULL (@id_productos, id_productos),
-					cantidad		= ISNULL (@cantidad, cantidad)
+			UPDATE t_apu_material 
+				SET id_apu		= ISNULL (@id_apu, id_apu),
+					id_producto	= ISNULL (@id_productos, id_producto),
+					cantidad	= ISNULL (@cantidad, cantidad)
 			WHERE 
 				id = @id
 		END ELSE
 		BEGIN
-			INSERT INTO t_apu_materiales (
+			INSERT INTO t_apu_material (
 				id_apu			,
-				id_productos	,
+				id_producto	,
 				cantidad
 			)
 			VALUES(

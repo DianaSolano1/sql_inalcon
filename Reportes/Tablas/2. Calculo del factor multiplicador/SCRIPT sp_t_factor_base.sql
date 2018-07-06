@@ -100,6 +100,8 @@ AS
 		WHERE
 			porcentaje_capitulo	IS NULL
 
+		SELECT * FROM @T_CALCULO_FM
+
 	END ELSE
 
 	IF @operacion = 'B' OR @operacion = 'A'

@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------------------------------------------------------------------------------
--- sp_t_perfil
+-- sp_t_factor_subitem
 IF OBJECT_ID('dbo.sp_t_factor_subitem') IS NOT NULL
 BEGIN
     DROP PROCEDURE dbo.sp_t_factor_subitem

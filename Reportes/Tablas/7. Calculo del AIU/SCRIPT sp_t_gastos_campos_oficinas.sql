@@ -71,7 +71,7 @@ AS
 		FROM t_gasto_campo_oficina co
 				LEFT JOIN t_AIU aiu ON co.id_AIU = aiu.id
 				LEFT JOIN t_cliente c ON aiu.id_cliente = c.ID
-		ORDER BY co.id DESC
+		ORDER BY co.id
 	
 	END ELSE	
 

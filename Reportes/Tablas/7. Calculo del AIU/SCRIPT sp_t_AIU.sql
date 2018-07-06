@@ -57,7 +57,7 @@ AS
 		FROM 
 			t_AIU a
 			LEFT JOIN t_cliente c ON a.id_cliente = c.ID
-		ORDER BY c.valor_contrato DESC
+		ORDER BY c.valor_contrato
 	
 	END ELSE	
 

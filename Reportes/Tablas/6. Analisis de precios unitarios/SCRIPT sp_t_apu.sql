@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------------------------------------------------------------------------------
--- sp_t_perfil
+-- sp_t_apu
 IF OBJECT_ID('dbo.sp_t_apu') IS NOT NULL
 BEGIN
     DROP PROCEDURE dbo.sp_t_apu
@@ -97,9 +97,19 @@ AS
 			@T_INICIAL_APU APU
 			LEFT JOIN t_apu a ON a.codigo = apu.apu
 			LEFT JOIN t_apu_equipo ae ON ae.id_apu = a.ID
-			LEFT JOIN t_producto p ON ae.id_productos = p.id
+			LEFT JOIN t_producto p ON ae.id_producto = p.id
 		WHERE
 			costos_directos	IS NULL
+
+		SELECT * 
+		FROM @T_INICIAL_APU apu
+			LEFT JOIN t_apu a ON a.codigo = apu.apu
+		WHERE
+			a.ID = 
+				CASE 
+					WHEN ISNULL (@id, '') = '' THEN id 
+					ELSE @id
+				END
 
 	END ELSE
 

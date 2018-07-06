@@ -44,7 +44,7 @@ AS
 			sn_administra	,
 			porcentaje
 		FROM
-			t_admin_imprevistos
+			t_admin_imprevisto
 		WHERE
 			id = 
 				CASE 
@@ -60,7 +60,7 @@ AS
 		DECLARE @T_ADMIN_IMPREVISTOS_UTIL TABLE 
 		(
 			id								INT				NOT NULL,
-			admision_imprevistos_utilidades	VARCHAR (200)	NOT NULL,
+			admin_imprevistos_utilidades	VARCHAR (200)	NOT NULL,
 			valores							NUMERIC (18, 2)	NULL,
 			porcentaje						NUMERIC (6, 3)	NULL,
 			valor_total						NUMERIC(18, 2)	NULL,
@@ -69,7 +69,7 @@ AS
 
 		INSERT @T_ADMIN_IMPREVISTOS_UTIL (
 				id,
-				admision_imprevistos_utilidades,
+				admin_imprevistos_utilidades,
 				valores,
 				porcentaje
 			)
@@ -77,7 +77,7 @@ AS
 				ai.descripcion AS 'admision_imprevistos_utilidades',
 				(c.valor_contrato * (ai.porcentaje / 100)) AS 'valores',
 				ai.porcentaje AS 'porcentaje'
-		FROM t_admin_imprevistos ai
+		FROM t_admin_imprevisto ai
 				LEFT JOIN t_AIU aiu ON ai.id_AIU = aiu.id
 				LEFT JOIN t_cliente c ON aiu.id_cliente = c.ID
 		ORDER BY ai.id DESC
@@ -113,6 +113,8 @@ AS
 			@T_ADMIN_IMPREVISTOS_UTIL ADM
 		WHERE
 			porcentaje_total	IS NULL
+
+		SELECT * FROM @T_ADMIN_IMPREVISTOS_UTIL
 	
 	END ELSE	
 
@@ -128,13 +130,13 @@ AS
 				
 				@operacion
 			FROM
-				t_admin_imprevistos 
+				t_admin_imprevisto
 			WHERE 
 				id = @id
 			
 			IF @operacion = 'B'
 			BEGIN
-				DELETE FROM t_admin_imprevistos 
+				DELETE FROM t_admin_imprevisto
 				WHERE 
 					id = @ID
 			END 
@@ -144,10 +146,10 @@ AS
 	
 	IF @OPERACION = 'I' OR @operacion = 'A'
 	BEGIN
-		IF EXISTS (SELECT 1 FROM t_admin_imprevistos WHERE id = @id )		
+		IF EXISTS (SELECT 1 FROM t_admin_imprevisto WHERE id = @id )		
 		BEGIN	
 				
-			UPDATE t_admin_imprevistos 
+			UPDATE t_admin_imprevisto
 				SET id_AIU			= ISNULL (@id_AIU, id_AIU),
 					descripcion		= ISNULL (@descripcion, descripcion),
 					sn_administra	= ISNULL (@sn_administra, sn_administra),
@@ -156,7 +158,7 @@ AS
 				id = @id
 		END ELSE
 		BEGIN
-			INSERT INTO t_admin_imprevistos (
+			INSERT INTO t_admin_imprevisto (
 				id_AIU			,
 				descripcion		,
 				sn_administra	,

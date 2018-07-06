@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------------------------------------------------------------------------------
--- sp_t_perfil
+-- sp_t_apu_transporte_material
 IF OBJECT_ID('dbo.sp_t_apu_transporte_material') IS NOT NULL
 BEGIN
     DROP PROCEDURE dbo.sp_t_apu_transporte_material
@@ -41,7 +41,7 @@ AS
 		SELECT 
 			id 				,
 			id_apu			,
-			id_productos	,
+			id_producto		,
 			distancia		,
 			tarifa
 		FROM
@@ -88,8 +88,8 @@ AS
 			(p.valor * atm.tarifa) AS 'valor_unitario'
 		FROM 
 			t_apu_transporte_material atm
-			LEFT JOIN t_productos p ON atm.id_productos = p.id
-			LEFT JOIN t_unidades u ON p.id_unidad = u.id
+			LEFT JOIN t_producto p ON atm.id_producto = p.id
+			LEFT JOIN t_unidad u ON p.id_unidad = u.id
 			LEFT JOIN t_apu a ON atm.id_apu = a.ID
 		ORDER BY a.codigo DESC
 
@@ -101,6 +101,8 @@ AS
 		WHERE
 			total	IS NULL
 
+		SELECT * FROM @T_REPORTE_TRANSPORTE_MATERIALES
+
 	END ELSE	
 
 	IF @operacion = 'B' OR @operacion = 'A'
@@ -109,7 +111,7 @@ AS
 			SELECT 
 				id 				,
 				id_apu			,
-				id_productos	,
+				id_producto		,
 				distancia		,
 				tarifa			,
 				
@@ -136,7 +138,7 @@ AS
 				
 			UPDATE t_apu_transporte_material 
 				SET id_apu			= ISNULL (@id_apu, id_apu),
-					id_productos	= ISNULL (@id_productos, id_productos),
+					id_producto		= ISNULL (@id_productos, id_producto),
 					distancia		= ISNULL (@distancia, distancia),
 					tarifa			= ISNULL (@tarifa, tarifa)
 			WHERE 
@@ -145,7 +147,7 @@ AS
 		BEGIN
 			INSERT INTO t_apu_transporte_material (
 				id_apu			,
-				id_productos	,
+				id_producto		,
 				distancia		,
 				tarifa	
 			)

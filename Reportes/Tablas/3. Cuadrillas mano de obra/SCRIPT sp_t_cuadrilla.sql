@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------------------------------------------------------------------------------
--- sp_t_perfil
+-- sp_t_cuadrilla
 IF OBJECT_ID('dbo.sp_t_cuadrilla') IS NOT NULL
 BEGIN
     DROP PROCEDURE dbo.sp_t_cuadrilla
@@ -39,7 +39,7 @@ AS
 	
 		SELECT 
 			id 					,
-			id_salrio_minimo	,
+			id_salario_minimo	,
 			dias_labor			,
 			horas_dia
 		FROM
@@ -60,7 +60,7 @@ AS
 				c.horas_dia,
 				dbo.calcularFactorMultiplicadorTotal() as 'factor_prestacional'
 		FROM t_cuadrilla c
-		LEFT JOIN t_legal l ON c.id_salrio_minimo = l.id;
+		LEFT JOIN t_legal l ON c.id_salario_minimo = l.id
 	END ELSE
 
 	IF @operacion = 'B' OR @operacion = 'A'
@@ -68,7 +68,7 @@ AS
 		BEGIN TRAN
 			SELECT 
 				id 					,
-				id_salrio_minimo	,
+				id_salario_minimo	,
 				dias_labor			,
 				horas_dia			,
 				
@@ -94,7 +94,7 @@ AS
 		BEGIN	
 				
 			UPDATE t_cuadrilla 
-				SET id_salrio_minimo	= ISNULL (@id_salario_minimo, id_salrio_minimo),
+				SET id_salario_minimo	= ISNULL (@id_salario_minimo, id_salario_minimo),
 					dias_labor			= ISNULL (@dias_labor, dias_labor),
 					horas_dia			= ISNULL (@horas_dia, horas_dia)
 			WHERE 
@@ -102,7 +102,7 @@ AS
 		END ELSE
 		BEGIN
 			INSERT INTO t_cuadrilla (
-				id_salrio_minimo	,
+				id_salario_minimo	,
 				dias_labor			,
 				horas_dia
 			)

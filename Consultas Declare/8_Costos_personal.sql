@@ -95,8 +95,8 @@
 				cd.tarifa,
 				dbo.CostoDirectoParcial(cd.id) AS 'costo_parcial',
 				dbo.CostoDirectoParcialTotal()
-		FROM t_costos_directos cd
-				LEFT JOIN t_unidades u ON cd.id_unidad = u.id
+		FROM t_costo_directo cd
+				LEFT JOIN t_unidad u ON cd.id_unidad = u.id
 		ORDER BY cd.nombre 
 
 		SELECT * FROM @T_OTROS_COSTOS_DIRECTOS

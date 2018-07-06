@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------------------------------------------------------------------------------
--- sp_t_perfil
+-- sp_t_cuadrilla_detalle
 IF OBJECT_ID('dbo.sp_t_cuadrilla_detalle') IS NOT NULL
 BEGIN
     DROP PROCEDURE dbo.sp_t_cuadrilla_detalle
@@ -110,6 +110,8 @@ AS
 			LEFT JOIN t_cuadrilla c ON je.id_cuadrilla = c.id
 		WHERE
 			cuadrilla_h_prestacion	IS NULL
+
+		SELECT * FROM @T_CUADRILLA
 
 	END ELSE
 

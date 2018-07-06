@@ -48,7 +48,7 @@ AS
 			tiempo_ejecucion	,
 			tarifa
 		FROM
-			t_costos_directos
+			t_costo_directo
 		WHERE
 			id = 
 				CASE 
@@ -68,9 +68,9 @@ AS
 				cd.tiempo_ejecucion,
 				cd.tarifa,
 				dbo.CostoDirectoParcial(cd.id) AS 'costo_parcial',
-				dbo.CostoDirectoParcialTotal()
-		FROM t_costos_directos cd
-				LEFT JOIN t_unidades u ON cd.id_unidad = u.id
+				dbo.CostoDirectoParcialTotal() AS CostoDirectoParcialTotal
+		FROM t_costo_directo cd
+				LEFT JOIN t_unidad u ON cd.id_unidad = u.id
 		ORDER BY cd.nombre
 	
 	END ELSE	
@@ -89,13 +89,13 @@ AS
 				
 				@operacion
 			FROM
-				t_costos_directos 
+				t_costo_directo 
 			WHERE 
 				id = @id
 			
 			IF @operacion = 'B'
 			BEGIN
-				DELETE FROM t_costos_directos 
+				DELETE FROM t_costo_directo 
 				WHERE 
 					id = @ID
 			END 
@@ -105,10 +105,10 @@ AS
 	
 	IF @OPERACION = 'I' OR @operacion = 'A'
 	BEGIN
-		IF EXISTS (SELECT 1 FROM t_costos_directos WHERE id = @id )		
+		IF EXISTS (SELECT 1 FROM t_costo_directo WHERE id = @id )		
 		BEGIN	
 				
-			UPDATE t_costos_directos 
+			UPDATE t_costo_directo 
 				SET id_unidad			= ISNULL (@id_unidad, id_unidad),
 					nombre				= ISNULL (@nombre, nombre),
 					cantidad			= ISNULL (@cantidad, cantidad),
@@ -119,8 +119,7 @@ AS
 				id = @id
 		END ELSE
 		BEGIN
-			INSERT INTO t_costos_directos (
-				id 					,
+			INSERT INTO t_costo_directo (
 				id_unidad			,
 				nombre				,
 				cantidad			,

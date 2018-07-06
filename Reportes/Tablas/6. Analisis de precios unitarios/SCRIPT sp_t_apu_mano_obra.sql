@@ -83,7 +83,6 @@ AS
 			a.codigo		,
 			cd.descripcion	,
 			amo.rendimiento	
-		HAVING COUNT(*) >= 1
 		ORDER BY a.codigo DESC
 
 		UPDATE @T_REPORTE_MANO_OBRA
@@ -120,7 +119,7 @@ AS
 
 		UPDATE @T_REPORTE_MANO_OBRA
 		SET
-			valor	=	dbo.ManoObraValor(a.codigo,cdet.id)
+			valor	=	dbo.ManoObraValor(a.codigo,cdet.id,amo.ID)
 		FROM
 			@T_REPORTE_MANO_OBRA RMO
 			--LEFT JOIN t_productos p ON RTM.transporte_materiales = p.nombre
@@ -138,6 +137,8 @@ AS
 			@T_REPORTE_MANO_OBRA RMO
 		WHERE
 			total	IS NULL
+
+		SELECT * FROM @T_REPORTE_MANO_OBRA
 
 	END ELSE	
 

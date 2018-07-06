@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------
--- sp_t_perfil
+-- sp_t_gastos_legales
 IF OBJECT_ID('dbo.sp_t_gastos_legales') IS NOT NULL
 BEGIN
     DROP PROCEDURE dbo.sp_t_gastos_legales
@@ -44,7 +44,7 @@ AS
 			valores		,
 			porcentaje
 		FROM
-			t_gastos_legales
+			t_gasto_legal
 		WHERE
 			id = 
 				CASE 
@@ -63,7 +63,7 @@ AS
 				dbo.GastosLPorcentaje(gl.id) AS 'porcentaje',
 				dbo.GastosLSTIValores() as 'GastosLSTIValores',
 				dbo.GastosLSTIPorcentajes() as 'GastosLSTIPorcentajes'
-		FROM t_gastos_legales gl
+		FROM t_gasto_legal gl
 				LEFT JOIN t_AIU a ON gl.id_AIU = a.id
 				LEFT JOIN t_cliente cl ON a.id_cliente = cl.ID
 		ORDER BY gl.id
@@ -82,13 +82,13 @@ AS
 				
 				@operacion
 			FROM
-				t_gastos_legales 
+				t_gasto_legal 
 			WHERE 
 				id = @id
 			
 			IF @operacion = 'B'
 			BEGIN
-				DELETE FROM t_gastos_legales 
+				DELETE FROM t_gasto_legal 
 				WHERE 
 					id = @ID
 			END 
@@ -98,10 +98,10 @@ AS
 	
 	IF @OPERACION = 'I' OR @operacion = 'A'
 	BEGIN
-		IF EXISTS (SELECT 1 FROM t_gastos_legales WHERE id = @id )		
+		IF EXISTS (SELECT 1 FROM t_gasto_legal WHERE id = @id )		
 		BEGIN	
 				
-			UPDATE t_gastos_legales 
+			UPDATE t_gasto_legal
 				SET id_AIU		= ISNULL (@id_AIU, id_AIU),
 					descripcion	= ISNULL (@descripcion, descripcion),
 					valores		= ISNULL (@valores, valores),
@@ -110,7 +110,7 @@ AS
 				id = @id
 		END ELSE
 		BEGIN
-			INSERT INTO t_gastos_legales (
+			INSERT INTO t_gasto_legal (
 				id_AIU		,
 				descripcion	,
 				valores		,

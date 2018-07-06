@@ -10,9 +10,9 @@ insert into t_apu_equipo values (1,1,1,1);
 insert into t_apu_equipo values (2,2,1.4,1);
 select * from t_apu_equipo;
 
-insert into t_apu_materiales values (1,1,1);
-insert into t_apu_materiales values (2,2,1.4);
-select * from t_apu_materiales;
+insert into t_apu_material values (1,1,1);
+insert into t_apu_material values (2,2,1.4);
+select * from t_apu_material;
 
 
 insert into t_apu_transporte_material values (1,1,16,0);

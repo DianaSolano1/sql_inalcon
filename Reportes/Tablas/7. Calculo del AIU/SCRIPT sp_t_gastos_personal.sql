@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------
--- sp_t_perfil
+-- sp_t_gastos_personal
 IF OBJECT_ID('dbo.sp_t_gastos_personal') IS NOT NULL
 BEGIN
     DROP PROCEDURE dbo.sp_t_gastos_personal
@@ -50,7 +50,7 @@ AS
 			dedicacion			,
 			tiempo_obra
 		FROM
-			t_gastos_personal
+			t_gasto_personal
 		WHERE
 			id = 
 				CASE 
@@ -74,7 +74,7 @@ AS
 				dbo.GastosPPorcentaje(gp.id) AS 'porcentaje',
 				dbo.GastosPSTI() AS 'GastosPSTI',
 				dbo.GastosPTotalPorcentaje() AS 'GastosPTotalPorcentaje'
-		FROM t_gastos_personal gp
+		FROM t_gasto_personal gp
 				LEFT JOIN t_cargo_sueldo cs ON gp.id_empleado = cs.id
 				LEFT JOIN t_AIU aiu ON gp.id_AIU = aiu.id
 				LEFT JOIN t_cliente c ON aiu.id_cliente = c.ID
@@ -97,13 +97,13 @@ AS
 				
 				@operacion
 			FROM
-				t_gastos_personal 
+				t_gasto_personal 
 			WHERE 
 				id = @id
 			
 			IF @operacion = 'B'
 			BEGIN
-				DELETE FROM t_gastos_personal 
+				DELETE FROM t_gasto_personal 
 				WHERE 
 					id = @ID
 			END 
@@ -113,10 +113,10 @@ AS
 	
 	IF @OPERACION = 'I' OR @operacion = 'A'
 	BEGIN
-		IF EXISTS (SELECT 1 FROM t_gastos_personal WHERE id = @id )		
+		IF EXISTS (SELECT 1 FROM t_gasto_personal WHERE id = @id )		
 		BEGIN	
 				
-			UPDATE t_gastos_personal 
+			UPDATE t_gasto_personal 
 				SET id_AIU				= ISNULL (@id_AIU, id_AIU),
 					id_empleado			= ISNULL (@id_empleado, id_empleado),
 					cantidad_empleado	= ISNULL (@cantidad_empleado, cantidad_empleado),
@@ -128,7 +128,7 @@ AS
 				id = @id
 		END ELSE
 		BEGIN
-			INSERT INTO t_gastos_personal (
+			INSERT INTO t_gasto_personal (
 				id_AIU				,
 				id_empleado			,
 				cantidad_empleado	,

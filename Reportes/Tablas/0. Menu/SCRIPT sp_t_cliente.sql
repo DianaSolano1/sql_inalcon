@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------------------------------------------------------------------------------
--- sp_t_perfil
+-- sp_t_cliente
 IF OBJECT_ID('dbo.sp_t_cliente') IS NOT NULL
 BEGIN
     DROP PROCEDURE dbo.sp_t_cliente

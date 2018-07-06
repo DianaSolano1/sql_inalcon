@@ -65,14 +65,14 @@ AS
 				apu.codigo,
 				apu.nombre,
 				u.nombre,
-				dbo.TotalApuInicial(apu.codigo),
+				dbo.TotalApuInicial(apu.codigo) AS TotalApuInicial,
 				ds.cantidad,
-				dbo.ValorTotalDETAPULleno(apu.codigo,ds.item)
+				dbo.ValorTotalDETAPULleno(apu.codigo,ds.item) AS ValorTotalDETAPULleno
 		FROM t_detalle_subpresupuesto ds
 				LEFT JOIN t_subpresupuesto s ON ds.id_subpresupuesto = s.ID
 				LEFT JOIN t_presupuesto_general pg ON ds.id_presupuesto = pg.id
 				LEFT JOIN t_apu apu ON ds.id_APU = apu.ID
-				LEFT JOIN t_unidades u ON apu.id_unidad = u.id
+				LEFT JOIN t_unidad u ON apu.id_unidad = u.id
 		ORDER BY pg.item
 	
 	END ELSE

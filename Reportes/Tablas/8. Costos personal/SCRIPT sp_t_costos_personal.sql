@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------
--- sp_t_perfil
+-- sp_t_costos_personal
 IF OBJECT_ID('dbo.sp_t_costos_personal') IS NOT NULL
 BEGIN
     DROP PROCEDURE dbo.sp_t_costos_personal
@@ -46,7 +46,7 @@ AS
 			dedicacion		,
 			tiempo_ejecucion
 		FROM
-			t_costos_personal
+			t_costo_personal
 		WHERE
 			id = 
 				CASE 
@@ -69,12 +69,41 @@ AS
 			cs.sueldo_basico,
 			dbo.CostoPersonalParcial(cs.ID) AS 'costo_parcial'
 		FROM 
-			t_costos_personal cp
+			t_costo_personal cp
 			LEFT JOIN t_experiencia ex ON cp.id_experiencia = ex.ID
 			LEFT JOIN t_cargo_sueldo cs ON cp.id_experiencia = cs.ID
 			LEFT JOIN t_rol_cargo rc ON cs.id_rol = rc.ID
 		ORDER BY rc.nombre 
 	
+	END ELSE
+
+	IF @operacion = 'C3'							--> Consulta el resultado final de los costos personal
+	BEGIN
+
+		DECLARE @T_TOTAL_COSTOS_PERSONAL TABLE 
+		(
+			sub_total		NUMERIC (18, 2)	NOT NULL,
+			FM				NUMERIC (5, 2)	NOT NULL,
+			total_personal	NUMERIC (18, 2)	NULL
+		)
+
+		INSERT @T_TOTAL_COSTOS_PERSONAL (
+				sub_total,
+				FM
+			)
+		SELECT	(dbo.CostoPersonalSubTotal()),
+				2
+
+		UPDATE @T_TOTAL_COSTOS_PERSONAL
+		SET
+			total_personal			= (dbo.TotalPersonal())
+		FROM
+			@T_TOTAL_COSTOS_PERSONAL ADM
+		WHERE
+			total_personal	IS NULL
+
+		SELECT * FROM @T_TOTAL_COSTOS_PERSONAL
+
 	END ELSE
 
 	IF @operacion = 'B' OR @operacion = 'A'
@@ -90,13 +119,13 @@ AS
 				
 				@operacion
 			FROM
-				t_costos_personal 
+				t_costo_personal 
 			WHERE 
 				id = @id
 			
 			IF @operacion = 'B'
 			BEGIN
-				DELETE FROM t_costos_personal 
+				DELETE FROM t_costo_personal 
 				WHERE 
 					id = @ID
 			END 
@@ -106,10 +135,10 @@ AS
 	
 	IF @OPERACION = 'I' OR @operacion = 'A'
 	BEGIN
-		IF EXISTS (SELECT 1 FROM t_costos_personal WHERE id = @id )		
+		IF EXISTS (SELECT 1 FROM t_costo_personal WHERE id = @id )		
 		BEGIN	
 				
-			UPDATE t_costos_personal 
+			UPDATE t_costo_personal 
 				SET id_experiencia		= ISNULL (@id_experiencia, id_experiencia),
 					id_cargo			= ISNULL (@id_cargo, id_cargo),
 					cantidad			= ISNULL (@cantidad, cantidad),
@@ -119,7 +148,7 @@ AS
 				id = @id
 		END ELSE
 		BEGIN
-			INSERT INTO t_costos_personal (
+			INSERT INTO t_costo_personal (
 				id 					,
 				id_experiencia		,
 				id_cargo			,

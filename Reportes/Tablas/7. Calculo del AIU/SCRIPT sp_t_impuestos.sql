@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------
--- sp_t_perfil
+-- sp_t_impuestos
 IF OBJECT_ID('dbo.sp_t_impuestos') IS NOT NULL
 BEGIN
     DROP PROCEDURE dbo.sp_t_impuestos
@@ -42,7 +42,7 @@ AS
 			descripcion	,
 			porcentaje
 		FROM
-			t_impuestos
+			t_impuesto
 		WHERE
 			id = 
 				CASE 
@@ -61,7 +61,7 @@ AS
 				i.porcentaje AS 'porcentaje',
 				dbo.ImpuestosSTI() AS 'ImpuestosSTI',
 				dbo.ImpuestosTotalPorcentajes() AS 'ImpuestosTotalPorcentajes'
-		FROM t_impuestos i
+		FROM t_impuesto i
 				LEFT JOIN t_AIU aiu ON i.id_AIU = aiu.id
 				LEFT JOIN t_cliente c ON aiu.id_cliente = c.ID
 		ORDER BY i.id 
@@ -79,13 +79,13 @@ AS
 				
 				@operacion
 			FROM
-				t_impuestos 
+				t_impuesto 
 			WHERE 
 				id = @id
 			
 			IF @operacion = 'B'
 			BEGIN
-				DELETE FROM t_impuestos 
+				DELETE FROM t_impuesto
 				WHERE 
 					id = @ID
 			END 
@@ -95,10 +95,10 @@ AS
 	
 	IF @OPERACION = 'I' OR @operacion = 'A'
 	BEGIN
-		IF EXISTS (SELECT 1 FROM t_impuestos WHERE id = @id )		
+		IF EXISTS (SELECT 1 FROM t_impuesto WHERE id = @id )		
 		BEGIN	
 				
-			UPDATE t_impuestos 
+			UPDATE t_impuesto
 				SET id_AIU		= ISNULL (@id_AIU, id_AIU),
 					descripcion	= ISNULL (@descripcion, descripcion),
 					porcentaje	= ISNULL (@porcentaje, porcentaje)
@@ -106,7 +106,7 @@ AS
 				id = @id
 		END ELSE
 		BEGIN
-			INSERT INTO t_impuestos (
+			INSERT INTO t_impuesto (
 				id_AIU		,
 				descripcion	,
 				porcentaje
